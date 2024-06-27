@@ -102,7 +102,7 @@ namespace XperienceCommunity.DataContext
         {
             ValidateQuery();
 
-            var queryBuilder = BuildQuery(_query?.Expression);
+            var queryBuilder = BuildQuery(_query?.Expression!);
 
             var queryOptions = CreateQueryOptions();
 

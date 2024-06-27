@@ -6,6 +6,5 @@
     <PackageVersion Include="Kentico.Xperience.Core" Version="[29.1.4,)" />
     <PackageVersion Include="CSharpFunctionalExtensions" Version="2.41.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0.0" />
-    <PackageVersion Include="Microsoft.Bcl.AsyncInterfaces" version="8.0.0.0" />
   </ItemGroup>
 </Project>
