@@ -24,6 +24,10 @@ namespace XperienceCommunity.DataContext
                     ProcessEquality(node);
                     break;
 
+                case ExpressionType.NotEqual:
+                    ProcessNotEquality(node);
+                    break;
+
                 case ExpressionType.GreaterThan:
                     ProcessComparison(node, isGreaterThan: true);
                     break;
@@ -128,7 +132,6 @@ namespace XperienceCommunity.DataContext
             return node;
         }
 
-
         private static object? GetMemberValue(Expression expression)
         {
             switch (expression)
@@ -138,7 +141,8 @@ namespace XperienceCommunity.DataContext
 
                 case MemberExpression memberExpression:
                     var member = memberExpression.Member;
-                    var objectValue = GetMemberValue(memberExpression.Expression!); // Recursively process the expression
+                    var objectValue =
+                        GetMemberValue(memberExpression.Expression!); // Recursively process the expression
 
                     if (objectValue == null)
                         throw new InvalidOperationException("The target object for the member expression is null.");
@@ -406,6 +410,48 @@ namespace XperienceCommunity.DataContext
             Visit(node.Left);
             _queryParameters.Where(where => where.Or());
             Visit(node.Right);
+        }
+
+        private void ProcessNotEquality(BinaryExpression node)
+        {
+            if (node.Left is MemberExpression left)
+            {
+                if (node.Right is ConstantExpression right)
+                {
+                    _queryParameters.Where(where => where.WhereNotEquals(left.Member.Name, right.Value));
+                }
+                else if (node.Right is MemberExpression rightMember)
+                {
+                    _queryParameters.Where(where =>
+                        where.WhereNotEquals(left.Member.Name, GetMemberValue(rightMember)));
+                }
+                else if (node.Right is UnaryExpression rightUnary && rightUnary.NodeType == ExpressionType.Convert)
+                {
+                    var value = GetMemberValue(rightUnary.Operand);
+                    _queryParameters.Where(where => where.WhereNotEquals(left.Member.Name, value));
+                }
+                else if (node.Right is MethodCallExpression rightMethod)
+                {
+                    var value = GetMethodCallValue(rightMethod);
+                    _queryParameters.Where(where => where.WhereNotEquals(left.Member.Name, value));
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        $"The right expression type '{node.Right.GetType().Name}' is not supported.");
+                }
+            }
+            else if (node.Left is MethodCallExpression leftMethod && node.Right is ConstantExpression rightConst)
+            {
+                var value = GetMethodCallValue(leftMethod);
+
+                _queryParameters.Where(where => where.WhereNotEquals(value?.ToString(), rightConst.Value));
+            }
+            else
+            {
+                throw new NotSupportedException(
+                    $"The left expression type '{node.Left.GetType().Name}' is not supported.");
+            }
         }
 
         private void ProcessStringContains(MethodCallExpression node)
