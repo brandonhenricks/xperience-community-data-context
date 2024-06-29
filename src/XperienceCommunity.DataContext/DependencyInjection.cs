@@ -17,6 +17,8 @@ namespace XperienceCommunity.DataContext
         {
             services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
 
+            services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
+
             return services;
         }
     }
