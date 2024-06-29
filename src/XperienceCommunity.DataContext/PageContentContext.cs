@@ -5,8 +5,9 @@ using CMS.Websites;
 using CMS.Websites.Routing;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Extensions;
+using XperienceCommunity.DataContext.Interfaces;
 
-namespace XperienceCommunity.DataContext.Interfaces
+namespace XperienceCommunity.DataContext
 {
     public class PageContentContext<T> : IPageContentContext<T> where T : class, IWebPageFieldsSource, new()
     {
@@ -18,6 +19,7 @@ namespace XperienceCommunity.DataContext.Interfaces
         private string? _channelName;
         private string? _language;
         private int? _linkedItemsDepth;
+        private PathMatch? _pathMatch;
         private IQueryable<T>? _query;
 
         public PageContentContext(IProgressiveCache cache, ILogger<PageContentContext<T>> logger,
@@ -53,6 +55,12 @@ namespace XperienceCommunity.DataContext.Interfaces
         public IPageContentContext<T> InLanguage(string language)
         {
             _language = language;
+            return this;
+        }
+
+        public IPageContentContext<T> OnPath(PathMatch pathMatch)
+        {
+            _pathMatch = pathMatch;
             return this;
         }
 
@@ -138,8 +146,15 @@ namespace XperienceCommunity.DataContext.Interfaces
         {
             var queryBuilder = new ContentItemQueryBuilder().ForContentType(_contentType, subQuery =>
             {
-                subQuery.ForWebsite(_channelName);
-
+                if (string.IsNullOrWhiteSpace(_path))
+                {
+                    subQuery.ForWebsite(_channelName);
+                }
+                else
+                {
+                    subQuery.ForWebsite(_channelName, _pathMatch);
+                }
+                
                 if (_linkedItemsDepth.HasValue)
                 {
                     subQuery.WithLinkedItems(_linkedItemsDepth.Value);
