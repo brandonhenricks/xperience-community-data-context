@@ -146,7 +146,7 @@ namespace XperienceCommunity.DataContext
         {
             var queryBuilder = new ContentItemQueryBuilder().ForContentType(_contentType, subQuery =>
             {
-                if (string.IsNullOrWhiteSpace(_path))
+                if (_pathMatch is null)
                 {
                     subQuery.ForWebsite(_channelName);
                 }
