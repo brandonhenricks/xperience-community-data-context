@@ -1,7 +1,6 @@
 ﻿using CMS.ContentEngine;
 using CMS.Websites;
 using System.Collections.Concurrent;
-using System.Reflection;
 
 namespace XperienceCommunity.DataContext.Extensions
 {
@@ -12,7 +11,7 @@ namespace XperienceCommunity.DataContext.Extensions
     {
         private const string FieldName = "CONTENT_TYPE_NAME";
 
-        private static readonly ConcurrentDictionary<string, string> s_ClassNames =
+        private static readonly ConcurrentDictionary<string, string> s_classNames =
             new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
@@ -40,8 +39,13 @@ namespace XperienceCommunity.DataContext.Extensions
         /// </summary>
         /// <param name="type">The type to get the content type name for.</param>
         /// <returns>The content type name associated with the specified type, or <c>null</c> if the type does not inherit from <see cref="IWebPageFieldsSource"/> or <see cref="IContentItemFieldsSource"/>, or if the content type name is not found.</returns>
-        internal static string? GetContentTypeName(this Type type)
+        internal static string? GetContentTypeName(this Type? type)
         {
+            if (type is null)
+            {
+                return null;
+            }
+
             if (!type.InheritsFromIWebPageFieldsSource() && !type.InheritsFromIContentItemFieldsSource())
             {
                 return null;
@@ -52,27 +56,19 @@ namespace XperienceCommunity.DataContext.Extensions
                 return null;
             }
 
-            if (s_ClassNames.TryGetValue(type.FullName, out var contentTypeName))
+            if (s_classNames.TryGetValue(type.FullName, out var contentTypeName))
             {
                 return contentTypeName;
             }
 
-            var field = type.GetField(FieldName,
-                BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-
-            if (field == null || field.FieldType != typeof(string))
-            {
-                return null;
-            }
-
-            contentTypeName = field.GetValue(null) as string;
+            contentTypeName = type.GetField(FieldName)?.GetRawConstantValue() as string;
 
             if (string.IsNullOrWhiteSpace(contentTypeName))
             {
                 return null;
             }
 
-            s_ClassNames.TryAdd(type.FullName, contentTypeName);
+            s_classNames.TryAdd(type!.FullName, contentTypeName);
 
             return contentTypeName;
         }
