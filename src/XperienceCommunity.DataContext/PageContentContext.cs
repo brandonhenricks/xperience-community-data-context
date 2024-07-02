@@ -52,7 +52,7 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
-        public IPageContentContext<T> InLanguage(string language)
+        public IDataContext<T> InLanguage(string language, bool useFallBack = true)
         {
             _language = language;
             return this;
@@ -64,13 +64,18 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
-        public IPageContentContext<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
+        public IDataContext<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
         {
             InitializeQuery();
 
             _query = _query?.OrderBy(keySelector);
 
             return this;
+        }
+
+        public IDataContext<T> Take(int count)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<IEnumerable<T>> ToListAsync(CancellationToken cancellationToken = default)
@@ -85,7 +90,7 @@ namespace XperienceCommunity.DataContext
                 GetCacheKey(queryBuilder));
         }
 
-        public IPageContentContext<T> Where(Expression<Func<T, bool>> predicate)
+        public IDataContext<T> Where(Expression<Func<T, bool>> predicate)
         {
             InitializeQuery();
 
@@ -99,7 +104,7 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="depth">The depth of linked items to include.</param>
         /// <returns>The current context for chaining.</returns>
-        public IPageContentContext<T> WithLinkedItems(int depth)
+        public IDataContext<T> WithLinkedItems(int depth)
         {
             _linkedItemsDepth = depth;
 

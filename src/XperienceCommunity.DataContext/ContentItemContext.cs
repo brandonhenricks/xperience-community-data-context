@@ -22,6 +22,7 @@ namespace XperienceCommunity.DataContext
         private int? _linkedItemsDepth;
         private IQueryable<T>? _query;
         private string? _language;
+        private bool? _useFallBack;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentItemContext{T}"/> class.
@@ -70,7 +71,7 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="keySelector">The key selector to order content items.</param>
         /// <returns>The current context for chaining.</returns>
-        public IContentItemContext<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
+        public IDataContext<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
         {
             InitializeQuery();
 
@@ -84,7 +85,7 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="count">The maximum number of content items to return.</param>
         /// <returns>The current context for chaining.</returns>
-        public IContentItemContext<T> Take(int count)
+        public IDataContext<T> Take(int count)
         {
             InitializeQuery();
 
@@ -115,7 +116,7 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="predicate">The predicate to filter content items.</param>
         /// <returns>The current context for chaining.</returns>
-        public IContentItemContext<T> Where(Expression<Func<T, bool>> predicate)
+        public IDataContext<T> Where(Expression<Func<T, bool>> predicate)
         {
             InitializeQuery();
 
@@ -129,21 +130,17 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="depth">The depth of linked items to include.</param>
         /// <returns>The current context for chaining.</returns>
-        public IContentItemContext<T> WithLinkedItems(int depth)
+        public IDataContext<T> WithLinkedItems(int depth)
         {
             _linkedItemsDepth = depth;
 
             return this;
         }
-
-        /// <summary>
-        /// Filters the content items by language.
-        /// </summary>
-        /// <param name="language">The language code to filter content items.</param>
-        /// <returns>The current context for chaining.</returns>
-        public IContentItemContext<T> InLanguage(string language)
+         
+        public IDataContext<T> InLanguage(string language, bool useFallBack = true)
         {
             _language = language;
+            _useFallBack = useFallBack;
             return this;
         }
 
@@ -204,7 +201,7 @@ namespace XperienceCommunity.DataContext
 
             if (!string.IsNullOrEmpty(_language))
             {
-                queryBuilder.InLanguage(_language);
+                queryBuilder.InLanguage(_language, useLanguageFallbacks: _useFallBack.HasValue && _useFallBack.Value);
             }
 
             return queryBuilder;
