@@ -17,11 +17,12 @@ namespace XperienceCommunity.DataContext
         private readonly IProgressiveCache _cache;
         private readonly string _contentType;
         private readonly ILogger<ContentItemContext<T>> _logger;
+        private readonly IEnumerable<IContentItemProcessor<T>> _processors;
         private readonly IContentQueryExecutor _queryExecutor;
         private readonly IWebsiteChannelContext _websiteChannelContext;
+        private string? _language;
         private int? _linkedItemsDepth;
         private IQueryable<T>? _query;
-        private string? _language;
         private bool? _useFallBack;
 
         /// <summary>
@@ -31,17 +32,20 @@ namespace XperienceCommunity.DataContext
         /// <param name="websiteChannelContext">The website channel context.</param>
         /// <param name="cache">The cache service.</param>
         /// <param name="logger"></param>
+        /// <param name="processors"></param>
         public ContentItemContext(IContentQueryExecutor queryExecutor, IWebsiteChannelContext websiteChannelContext,
-            IProgressiveCache cache, ILogger<ContentItemContext<T>> logger)
+            IProgressiveCache cache, ILogger<ContentItemContext<T>> logger,
+            IEnumerable<IContentItemProcessor<T>>? processors = null)
         {
-            _queryExecutor = queryExecutor ?? throw new ArgumentNullException(nameof(queryExecutor));
-
+            ArgumentNullException.ThrowIfNull(cache, nameof(cache));
+            ArgumentNullException.ThrowIfNull(logger, nameof(logger));
+            ArgumentNullException.ThrowIfNull(queryExecutor, nameof(queryExecutor));
+            _queryExecutor = queryExecutor;
             _websiteChannelContext =
-                websiteChannelContext ?? throw new ArgumentNullException(nameof(websiteChannelContext));
-
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+                websiteChannelContext;
+            _cache = cache;
+            _logger = logger;
+            _processors = processors ?? [];
 
             _contentType = typeof(T).GetContentTypeName() ??
                            throw new InvalidOperationException("Content type name could not be determined.");
@@ -64,6 +68,13 @@ namespace XperienceCommunity.DataContext
                 GetCacheKey(queryBuilder));
 
             return result.FirstOrDefault();
+        }
+
+        public IDataContext<T> InLanguage(string language, bool useFallBack = true)
+        {
+            _language = language;
+            _useFallBack = useFallBack;
+            return this;
         }
 
         /// <summary>
@@ -134,13 +145,6 @@ namespace XperienceCommunity.DataContext
         {
             _linkedItemsDepth = depth;
 
-            return this;
-        }
-         
-        public IDataContext<T> InLanguage(string language, bool useFallBack = true)
-        {
-            _language = language;
-            _useFallBack = useFallBack;
             return this;
         }
 
@@ -232,8 +236,18 @@ namespace XperienceCommunity.DataContext
         {
             try
             {
-                return await _queryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
+                var results = await _queryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
                     cancellationToken: cancellationToken);
+
+                foreach (var result in results)
+                {
+                    foreach (var processor in _processors)
+                    {
+                        await processor.ProcessAsync(result);
+                    }
+                }
+
+                return results;
             }
             catch (Exception ex)
             {
@@ -284,10 +298,7 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         private void InitializeQuery()
         {
-            if (_query is null)
-            {
-                _query = Enumerable.Empty<T>().AsQueryable();
-            }
+            _query ??= Enumerable.Empty<T>().AsQueryable();
         }
 
         /// <summary>

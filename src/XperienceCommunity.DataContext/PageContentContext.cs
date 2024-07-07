@@ -16,6 +16,7 @@ namespace XperienceCommunity.DataContext
         private readonly ILogger<PageContentContext<T>> _logger;
         private readonly IContentQueryExecutor _queryExecutor;
         private readonly IWebsiteChannelContext _websiteChannelContext;
+        private readonly IEnumerable<IPageContentProcessor<T>> _processors;
         private string? _channelName;
         private string? _language;
         private int? _linkedItemsDepth;
@@ -23,14 +24,19 @@ namespace XperienceCommunity.DataContext
         private IQueryable<T>? _query;
 
         public PageContentContext(IProgressiveCache cache, ILogger<PageContentContext<T>> logger,
-            IContentQueryExecutor queryExecutor, IWebsiteChannelContext websiteChannelContext)
+            IContentQueryExecutor queryExecutor, IWebsiteChannelContext websiteChannelContext, IEnumerable<IPageContentProcessor<T>>? processors)
         {
+            ArgumentNullException.ThrowIfNull(cache,nameof(cache));
+            ArgumentNullException.ThrowIfNull(logger,nameof(logger));
+            ArgumentNullException.ThrowIfNull(queryExecutor, nameof(queryExecutor));
+            ArgumentNullException.ThrowIfNull(websiteChannelContext, nameof(websiteChannelContext));
             _cache = cache;
             _contentType = typeof(T).GetContentTypeName() ??
                            throw new InvalidOperationException("Content type name could not be determined.");
             _logger = logger;
             _queryExecutor = queryExecutor;
             _websiteChannelContext = websiteChannelContext;
+            _processors = processors ?? [];
         }
 
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
@@ -212,8 +218,18 @@ namespace XperienceCommunity.DataContext
         {
             try
             {
-                return await _queryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
+                var results = await _queryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
                     cancellationToken: cancellationToken);
+
+                foreach (var result in results)
+                {
+                    foreach (var processor in _processors)
+                    {
+                        await processor.ProcessAsync(result);
+                    }
+                }
+
+                return results;
             }
             catch (Exception ex)
             {
@@ -264,10 +280,7 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         private void InitializeQuery()
         {
-            if (_query is null)
-            {
-                _query = Enumerable.Empty<T>().AsQueryable();
-            }
+            _query ??= Enumerable.Empty<T>().AsQueryable();
         }
 
         /// <summary>
