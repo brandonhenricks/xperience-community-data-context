@@ -55,8 +55,6 @@ public sealed class XperienceContextBuilder
     /// <returns>The current <see cref="XperienceContextBuilder"/> instance.</returns>
     public XperienceContextBuilder SetCacheTimeout(int timeoutInMinutes)
     {
-        // Set the cache timeout
-        // Example: _services.AddSingleton<ICacheService>(new CacheService(TimeSpan.FromMinutes(timeoutInMinutes)));
         _config.CacheTimeOut = timeoutInMinutes;
 
         _services.AddSingleton(_config);
