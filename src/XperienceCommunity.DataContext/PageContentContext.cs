@@ -118,7 +118,7 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
-        private static string[] GetCacheDependencies<T>(IEnumerable<T> data)
+        private static string[] GetCacheDependencies(IEnumerable<T> data)
         {
             var keys = new HashSet<string>();
 

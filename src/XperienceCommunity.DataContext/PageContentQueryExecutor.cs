@@ -29,6 +29,11 @@ namespace XperienceCommunity.DataContext
                 var results = await _queryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
                     cancellationToken: cancellationToken);
 
+                if (!_processors.Any())
+                {
+                    return results;
+                }
+
                 foreach (var result in results)
                 {
                     foreach (var processor in _processors)
