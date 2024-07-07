@@ -396,7 +396,7 @@ namespace XperienceCommunity.DataContext
                 throw new NotSupportedException(
                     $"The left expression type '{node.Left.GetType().Name}' is not supported.");
             }
-        }
+        } 
 
         private void ProcessLogicalAnd(BinaryExpression node)
         {

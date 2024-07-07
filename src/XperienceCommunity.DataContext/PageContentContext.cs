@@ -75,7 +75,11 @@ namespace XperienceCommunity.DataContext
 
         public IDataContext<T> Take(int count)
         {
-            throw new NotImplementedException();
+            InitializeQuery();
+
+            _query = _query?.Take(count);
+
+            return this;
         }
 
         public async Task<IEnumerable<T>> ToListAsync(CancellationToken cancellationToken = default)
