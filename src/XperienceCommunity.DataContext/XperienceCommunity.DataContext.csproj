@@ -15,7 +15,7 @@
     <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
   <ItemGroup>
-  <PackageReference Include="CSharpFunctionalExtensions"/>
+  <PackageReference Include="CSharpFunctionalExtensions" />
     <PackageReference Include="Kentico.Xperience.Core">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
