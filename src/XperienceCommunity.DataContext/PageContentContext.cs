@@ -3,7 +3,6 @@ using CMS.ContentEngine;
 using CMS.Helpers;
 using CMS.Websites;
 using CMS.Websites.Routing;
-using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Extensions;
 using XperienceCommunity.DataContext.Interfaces;
 
@@ -13,30 +12,26 @@ namespace XperienceCommunity.DataContext
     {
         private readonly IProgressiveCache _cache;
         private readonly string _contentType;
-        private readonly ILogger<PageContentContext<T>> _logger;
-        private readonly IContentQueryExecutor _queryExecutor;
+        private readonly PageContentQueryExecutor<T> _pageContentQueryExecutor;
         private readonly IWebsiteChannelContext _websiteChannelContext;
-        private readonly IEnumerable<IPageContentProcessor<T>> _processors;
         private string? _channelName;
         private string? _language;
         private int? _linkedItemsDepth;
         private PathMatch? _pathMatch;
         private IQueryable<T>? _query;
 
-        public PageContentContext(IProgressiveCache cache, ILogger<PageContentContext<T>> logger,
-            IContentQueryExecutor queryExecutor, IWebsiteChannelContext websiteChannelContext, IEnumerable<IPageContentProcessor<T>>? processors)
+        public PageContentContext(IProgressiveCache cache, PageContentQueryExecutor<T> pageContentQueryExecutor,
+            IWebsiteChannelContext websiteChannelContext)
         {
             ArgumentNullException.ThrowIfNull(cache);
-            ArgumentNullException.ThrowIfNull(logger);
-            ArgumentNullException.ThrowIfNull(queryExecutor);
             ArgumentNullException.ThrowIfNull(websiteChannelContext);
+            ArgumentNullException.ThrowIfNull(pageContentQueryExecutor);
+
             _cache = cache;
             _contentType = typeof(T).GetContentTypeName() ??
                            throw new InvalidOperationException("Content type name could not be determined.");
-            _logger = logger;
-            _queryExecutor = queryExecutor;
+            _pageContentQueryExecutor = pageContentQueryExecutor;
             _websiteChannelContext = websiteChannelContext;
-            _processors = processors ?? [];
         }
 
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
@@ -46,7 +41,8 @@ namespace XperienceCommunity.DataContext
 
             var queryOptions = CreateQueryOptions();
 
-            var result = await GetOrCacheAsync(() => ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+            var result = await GetOrCacheAsync(
+                () => _pageContentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
 
             return result.FirstOrDefault();
@@ -96,7 +92,8 @@ namespace XperienceCommunity.DataContext
 
             var queryOptions = CreateQueryOptions();
 
-            return await GetOrCacheAsync(() => ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+            return await GetOrCacheAsync(
+                () => _pageContentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
         }
 
@@ -169,7 +166,7 @@ namespace XperienceCommunity.DataContext
                 {
                     subQuery.ForWebsite(_channelName, _pathMatch);
                 }
-                
+
                 if (_linkedItemsDepth.HasValue)
                 {
                     subQuery.WithLinkedItems(_linkedItemsDepth.Value);
@@ -204,38 +201,6 @@ namespace XperienceCommunity.DataContext
             queryOptions.IncludeSecuredItems = queryOptions.IncludeSecuredItems || _websiteChannelContext.IsPreview;
 
             return queryOptions;
-        }
-
-        /// <summary>
-        /// Executes the query and returns the result.
-        /// </summary>
-        /// <param name="queryBuilder">The query builder.</param>
-        /// <param name="queryOptions">The query options.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The task result containing the query result.</returns>
-        private async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
-            ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var results = await _queryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
-                    cancellationToken: cancellationToken);
-
-                foreach (var result in results)
-                {
-                    foreach (var processor in _processors)
-                    {
-                        await processor.ProcessAsync(result);
-                    }
-                }
-
-                return results;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return [];
-            }
         }
 
         /// <summary>

@@ -2,7 +2,6 @@
 using CMS.ContentEngine;
 using CMS.Helpers;
 using CMS.Websites.Routing;
-using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Extensions;
 using XperienceCommunity.DataContext.Interfaces;
 
@@ -15,10 +14,8 @@ namespace XperienceCommunity.DataContext
     public sealed class ContentItemContext<T> : IContentItemContext<T> where T : class, IContentItemFieldsSource, new()
     {
         private readonly IProgressiveCache _cache;
+        private readonly ContentQueryExecutor<T> _contentQueryExecutor;
         private readonly string _contentType;
-        private readonly ILogger<ContentItemContext<T>> _logger;
-        private readonly IEnumerable<IContentItemProcessor<T>> _processors;
-        private readonly IContentQueryExecutor _queryExecutor;
         private readonly IWebsiteChannelContext _websiteChannelContext;
         private string? _language;
         private int? _linkedItemsDepth;
@@ -28,24 +25,19 @@ namespace XperienceCommunity.DataContext
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentItemContext{T}"/> class.
         /// </summary>
-        /// <param name="queryExecutor">The query executor for executing content queries.</param>
         /// <param name="websiteChannelContext">The website channel context.</param>
         /// <param name="cache">The cache service.</param>
-        /// <param name="logger"></param>
-        /// <param name="processors"></param>
-        public ContentItemContext(IContentQueryExecutor queryExecutor, IWebsiteChannelContext websiteChannelContext,
-            IProgressiveCache cache, ILogger<ContentItemContext<T>> logger,
-            IEnumerable<IContentItemProcessor<T>>? processors = null)
+        /// <param name="contentQueryExecutor"></param>
+        public ContentItemContext(IWebsiteChannelContext websiteChannelContext,
+            IProgressiveCache cache, ContentQueryExecutor<T> contentQueryExecutor)
         {
             ArgumentNullException.ThrowIfNull(cache);
-            ArgumentNullException.ThrowIfNull(logger);
-            ArgumentNullException.ThrowIfNull(queryExecutor);
-            _queryExecutor = queryExecutor;
+            ArgumentNullException.ThrowIfNull(websiteChannelContext);
+            ArgumentNullException.ThrowIfNull(contentQueryExecutor);
             _websiteChannelContext =
                 websiteChannelContext;
             _cache = cache;
-            _logger = logger;
-            _processors = processors ?? [];
+            _contentQueryExecutor = contentQueryExecutor;
 
             _contentType = typeof(T).GetContentTypeName() ??
                            throw new InvalidOperationException("Content type name could not be determined.");
@@ -64,7 +56,8 @@ namespace XperienceCommunity.DataContext
 
             var queryOptions = CreateQueryOptions();
 
-            var result = await GetOrCacheAsync(() => ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+            var result = await GetOrCacheAsync(
+                () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
 
             return result.FirstOrDefault();
@@ -118,7 +111,8 @@ namespace XperienceCommunity.DataContext
 
             var queryOptions = CreateQueryOptions();
 
-            return await GetOrCacheAsync(() => ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+            return await GetOrCacheAsync(
+                () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
         }
 
@@ -222,38 +216,6 @@ namespace XperienceCommunity.DataContext
             queryOptions.IncludeSecuredItems = queryOptions.IncludeSecuredItems || _websiteChannelContext.IsPreview;
 
             return queryOptions;
-        }
-
-        /// <summary>
-        /// Executes the query and returns the result.
-        /// </summary>
-        /// <param name="queryBuilder">The query builder.</param>
-        /// <param name="queryOptions">The query options.</param>
-        /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>The task result containing the query result.</returns>
-        private async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
-            ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var results = await _queryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
-                    cancellationToken: cancellationToken);
-
-                foreach (var result in results)
-                {
-                    foreach (var processor in _processors)
-                    {
-                        await processor.ProcessAsync(result);
-                    }
-                }
-
-                return results;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return [];
-            }
         }
 
         /// <summary>

@@ -19,6 +19,8 @@ namespace XperienceCommunity.DataContext
         {
             services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
             services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
+            services.AddScoped(typeof(ContentQueryExecutor<>));
+            services.AddScoped(typeof(PageContentQueryExecutor<>));
 
             var config = new XperienceDataContextConfig();
 
@@ -41,6 +43,8 @@ namespace XperienceCommunity.DataContext
         {
             services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
             services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
+            services.AddScoped(typeof(ContentQueryExecutor<>));
+            services.AddScoped(typeof(PageContentQueryExecutor<>));
 
             return new XperienceContextBuilder(services);
         }

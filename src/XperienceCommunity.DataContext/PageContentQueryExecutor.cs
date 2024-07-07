@@ -5,13 +5,14 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext
 {
-    internal sealed class PageContentQueryExecutor<T> where T: class, IWebPageFieldsSource, new()
+    public sealed class PageContentQueryExecutor<T> where T : class, IWebPageFieldsSource, new()
     {
         private readonly ILogger<PageContentQueryExecutor<T>> _logger;
-        private readonly IContentQueryExecutor _queryExecutor;
         private readonly IEnumerable<IPageContentProcessor<T>> _processors;
+        private readonly IContentQueryExecutor _queryExecutor;
 
-        public PageContentQueryExecutor(ILogger<PageContentQueryExecutor<T>> logger, IContentQueryExecutor queryExecutor, IEnumerable<IPageContentProcessor<T>> processors)
+        public PageContentQueryExecutor(ILogger<PageContentQueryExecutor<T>> logger,
+            IContentQueryExecutor queryExecutor, IEnumerable<IPageContentProcessor<T>>? processors)
         {
             ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(queryExecutor);
@@ -20,11 +21,13 @@ namespace XperienceCommunity.DataContext
             _processors = processors ?? [];
         }
 
-        public async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder, ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
+        public async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
+            ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
             try
             {
-                var results = await _queryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken);
+                var results = await _queryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
+                    cancellationToken: cancellationToken);
 
                 foreach (var result in results)
                 {

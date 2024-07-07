@@ -5,7 +5,7 @@ using XperienceCommunity.DataContext.Extensions;
 
 namespace XperienceCommunity.DataContext
 {
-    public class ContentItemQueryExpressionVisitor : ExpressionVisitor
+    internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
     {
         private readonly ContentTypeQueryParameters _queryParameters;
         private string? _currentMemberName;
