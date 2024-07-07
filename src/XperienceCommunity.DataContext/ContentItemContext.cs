@@ -12,7 +12,7 @@ namespace XperienceCommunity.DataContext
     /// Provides context for querying content items of a specified type.
     /// </summary>
     /// <typeparam name="T">The type of the content item.</typeparam>
-    public class ContentItemContext<T> : IContentItemContext<T> where T : class, IContentItemFieldsSource, new()
+    public sealed class ContentItemContext<T> : IContentItemContext<T> where T : class, IContentItemFieldsSource, new()
     {
         private readonly IProgressiveCache _cache;
         private readonly string _contentType;

@@ -9,7 +9,7 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext
 {
-    public class PageContentContext<T> : IPageContentContext<T> where T : class, IWebPageFieldsSource, new()
+    public sealed class PageContentContext<T> : IPageContentContext<T> where T : class, IWebPageFieldsSource, new()
     {
         private readonly IProgressiveCache _cache;
         private readonly string _contentType;

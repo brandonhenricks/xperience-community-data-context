@@ -9,7 +9,7 @@ namespace XperienceCommunity.DataContext;
 /// <summary>
 /// Builder class for configuring XperienceDataContext.
 /// </summary>
-public class XperienceContextBuilder
+public sealed class XperienceContextBuilder
 {
     private readonly IServiceCollection _services;
     private readonly XperienceDataContextConfig _config;
