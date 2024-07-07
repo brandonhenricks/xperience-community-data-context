@@ -26,10 +26,10 @@ namespace XperienceCommunity.DataContext
         public PageContentContext(IProgressiveCache cache, ILogger<PageContentContext<T>> logger,
             IContentQueryExecutor queryExecutor, IWebsiteChannelContext websiteChannelContext, IEnumerable<IPageContentProcessor<T>>? processors)
         {
-            ArgumentNullException.ThrowIfNull(cache,nameof(cache));
-            ArgumentNullException.ThrowIfNull(logger,nameof(logger));
-            ArgumentNullException.ThrowIfNull(queryExecutor, nameof(queryExecutor));
-            ArgumentNullException.ThrowIfNull(websiteChannelContext, nameof(websiteChannelContext));
+            ArgumentNullException.ThrowIfNull(cache);
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(queryExecutor);
+            ArgumentNullException.ThrowIfNull(websiteChannelContext);
             _cache = cache;
             _contentType = typeof(T).GetContentTypeName() ??
                            throw new InvalidOperationException("Content type name could not be determined.");
@@ -127,7 +127,7 @@ namespace XperienceCommunity.DataContext
 
             foreach (var item in data)
             {
-                if (item is IContentItemFieldsSource contentItem)
+                if (item is IWebPageFieldsSource contentItem)
                 {
                     keys.Add($"webpageitem|byid|{contentItem.SystemFields.ContentItemID}");
                 }
@@ -143,7 +143,7 @@ namespace XperienceCommunity.DataContext
                 return GetCacheDependencies(items);
             }
 
-            if (data is IContentItemFieldsSource item)
+            if (data is IWebPageFieldsSource item)
             {
                 return [$"webpageitem|byid|{item.SystemFields.ContentItemID}"];
             }

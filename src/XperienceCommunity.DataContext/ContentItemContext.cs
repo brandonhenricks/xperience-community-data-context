@@ -37,9 +37,9 @@ namespace XperienceCommunity.DataContext
             IProgressiveCache cache, ILogger<ContentItemContext<T>> logger,
             IEnumerable<IContentItemProcessor<T>>? processors = null)
         {
-            ArgumentNullException.ThrowIfNull(cache, nameof(cache));
-            ArgumentNullException.ThrowIfNull(logger, nameof(logger));
-            ArgumentNullException.ThrowIfNull(queryExecutor, nameof(queryExecutor));
+            ArgumentNullException.ThrowIfNull(cache);
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentNullException.ThrowIfNull(queryExecutor);
             _queryExecutor = queryExecutor;
             _websiteChannelContext =
                 websiteChannelContext;

@@ -31,6 +31,7 @@ namespace XperienceCommunity.DataContext
 
             return services;
         }
+
         /// <summary>
         /// Adds the XperienceDataContext services to the specified <see cref="IServiceCollection"/>.
         /// </summary>
