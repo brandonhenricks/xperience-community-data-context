@@ -502,28 +502,50 @@ namespace XperienceCommunity.DataContext
 
         private void ProcessEnumerableContains(MethodCallExpression node)
         {
-            if (node.Arguments.Count == 2 &&
-                node.Arguments[0] is MemberExpression memberExpression &&
-                node.Arguments[1] is ConstantExpression listExpression)
+            if (node.Arguments.Count == 2)
             {
-                var columnName = memberExpression.Member.Name;
-                var values = ExtractValues(listExpression.Value);
+                var collectionExpression = node.Arguments[0];
+                var itemExpression = node.Arguments[1];
 
-                AddWhereInCondition(columnName, values);
+                if (collectionExpression is MemberExpression collectionMember && itemExpression is ConstantExpression constantExpression)
+                {
+                    var columnName = collectionMember.Member.Name;
+                    var values = ExtractValues(constantExpression.Value);
+
+                    AddWhereInCondition(columnName, values);
+                }
+                else if (collectionExpression is MemberExpression collectionFieldExpression && itemExpression is MemberExpression itemFieldExpression)
+                {
+                    var collection = ExtractFieldValues(collectionFieldExpression);
+                    var columnName = itemFieldExpression.Member.Name;
+
+                    AddWhereInCondition(columnName, collection);
+                }
+                else
+                {
+                    throw new NotSupportedException($"The expression types '{collectionExpression.GetType().Name}' and '{itemExpression.GetType().Name}' are not supported.");
+                }
             }
-            else if (node.Arguments.Count == 2 &&
-                     node.Arguments[0] is MemberExpression collectionExpression &&
-                     node.Arguments[1] is MemberExpression itemExpression)
+            else if (node.Arguments.Count == 1 && node.Object != null)
             {
-                var collection = ExtractFieldValues(collectionExpression);
-                var columnName = itemExpression.Member.Name;
+                var collectionExpression = node.Object;
+                var itemExpression = node.Arguments[0];
 
-                AddWhereInCondition(columnName, collection);
+                if (collectionExpression is MemberExpression collectionMember && itemExpression is MemberExpression itemMember)
+                {
+                    var collection = ExtractFieldValues(collectionMember);
+                    var columnName = itemMember.Member.Name;
+
+                    AddWhereInCondition(columnName, collection);
+                }
+                else
+                {
+                    throw new NotSupportedException($"The expression types '{collectionExpression.GetType().Name}' and '{itemExpression.GetType().Name}' are not supported.");
+                }
             }
             else
             {
-                throw new NotSupportedException(
-                    $"The expression types '{node.Arguments[0]?.GetType().Name}' and '{node.Arguments[1]?.GetType().Name}' are not supported.");
+                throw new NotSupportedException($"The method '{node.Method.Name}' requires either 1 or 2 arguments.");
             }
         }
 
