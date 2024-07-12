@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections;
+using System.Linq.Expressions;
 using System.Reflection;
 using CMS.ContentEngine;
 using XperienceCommunity.DataContext.Extensions;
@@ -110,6 +111,24 @@ namespace XperienceCommunity.DataContext
                     throw new NotSupportedException($"The method '{node.Method.Name}' is not supported.");
                 }
             }
+            else if (node.Method.DeclaringType == typeof(Queryable))
+            {
+                switch (node.Method.Name)
+                {
+                    case nameof(Queryable.Where):
+                        return ProcessQueryableWhere(node);
+
+                    case nameof(Queryable.Select):
+                        return ProcessQueryableSelect(node);
+                    // Add other Queryable methods as needed
+                    default:
+                        throw new NotSupportedException($"The method call '{node.Method.Name}' is not supported.");
+                }
+            }
+            else if (node.Method.Name == nameof(Enumerable.Contains))
+            {
+                ProcessEnumerableContains(node);
+            }
             else
             {
                 throw new NotSupportedException($"The method '{node.Method.Name}' is not supported.");
@@ -132,7 +151,72 @@ namespace XperienceCommunity.DataContext
             return node;
         }
 
-        private static object? GetMemberValue(Expression expression)
+        private static IEnumerable<object> ExtractValues(object? value)
+        {
+            if (value is IEnumerable<object> objectEnumerable)
+            {
+                return objectEnumerable;
+            }
+
+            if (value is IEnumerable<int> intEnumerable)
+            {
+                return intEnumerable.Cast<object>();
+            }
+
+            if (value is IEnumerable<string> stringEnumerable)
+            {
+                return stringEnumerable.Cast<object>();
+            }
+
+            if (value is IEnumerable<Guid> guidEnumerable)
+            {
+                return guidEnumerable.Cast<object>();
+            }
+
+            if (value is IEnumerable enumerable)
+            {
+                var list = new List<object>();
+
+                foreach (var item in enumerable)
+                {
+                    var itemValues = ExtractValues(item);
+                    list.AddRange(itemValues);
+                }
+
+                return list;
+            }
+
+            if (value is null)
+            {
+                return [];
+            }
+
+            // Check if the object has a property that is a collection
+            var properties = value.GetType().GetProperties();
+
+            var collectionProperty = properties.FirstOrDefault(p =>
+                p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+            if (collectionProperty != null)
+            {
+                var collectionValue = collectionProperty.GetValue(value);
+                return ExtractValues(collectionValue);
+            }
+
+            return new[] { value };
+        }
+
+        private static string? GetMemberNameFromMethodCall(MethodCallExpression methodCall)
+        {
+            if (methodCall.Object is MemberExpression memberExpression)
+            {
+                return memberExpression.Member.Name;
+            }
+
+            return null;
+        }
+
+        private static object? GetMemberValue(Expression? expression)
         {
             switch (expression)
             {
@@ -141,15 +225,18 @@ namespace XperienceCommunity.DataContext
 
                 case MemberExpression memberExpression:
                     var member = memberExpression.Member;
+
                     var objectValue =
-                        GetMemberValue(memberExpression.Expression!); // Recursively process the expression
+                        GetMemberValue(memberExpression?.Expression); // Recursively process the expression
 
                     if (objectValue == null)
+                    {
                         throw new InvalidOperationException("The target object for the member expression is null.");
+                    }
 
                     return member switch
                     {
-                        System.Reflection.FieldInfo fieldInfo => fieldInfo.GetValue(objectValue),
+                        FieldInfo fieldInfo => fieldInfo.GetValue(objectValue),
                         PropertyInfo propertyInfo => propertyInfo.GetValue(objectValue),
                         _ => throw new NotSupportedException(
                             $"The member type '{member.GetType().Name}' is not supported.")
@@ -164,7 +251,7 @@ namespace XperienceCommunity.DataContext
 
                 default:
                     throw new NotSupportedException(
-                        $"The expression type '{expression.GetType().Name}' is not supported.");
+                        $"The expression type '{expression?.GetType().Name}' is not supported.");
             }
         }
 
@@ -172,8 +259,87 @@ namespace XperienceCommunity.DataContext
         {
             // Evaluate the method call expression to get the resulting value
             var lambda = Expression.Lambda(methodCall).Compile();
-
             return lambda.DynamicInvoke();
+        }
+
+        private void AddWhereInCondition(string columnName, IEnumerable<object>? values)
+        {
+            if (values == null)
+            {
+                return;
+            }
+
+            if (!values.Any())
+            {
+                // Pass an empty array to WhereIn
+                _queryParameters.Where(where => where.WhereIn(columnName, Array.Empty<string>()));
+                return;
+            }
+
+            var firstValue = values.First();
+
+            if (firstValue is int)
+            {
+                _queryParameters.Where(where => where.WhereIn(columnName, values.Cast<int>().ToArray()));
+            }
+            else if (firstValue is string)
+            {
+                _queryParameters.Where(where => where.WhereIn(columnName, values.Cast<string>().ToArray()));
+            }
+            else if (firstValue is Guid)
+            {
+                _queryParameters.Where(where => where.WhereIn(columnName, values.Cast<Guid>().ToArray()));
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        private IEnumerable<object>? ExtractCollectionValues(MemberExpression collectionExpression)
+        {
+            if (collectionExpression.Expression != null)
+            {
+                var value = GetExpressionValue(collectionExpression.Expression);
+
+                return ExtractValues(value);
+            }
+
+            return null;
+        }
+
+        private IEnumerable<object> ExtractFieldValues(MemberExpression fieldExpression)
+        {
+            var value = GetExpressionValue(fieldExpression);
+            return ExtractValues(value);
+        }
+
+        private object? GetExpressionValue(Expression expression)
+        {
+            switch (expression)
+            {
+                case ConstantExpression constantExpression:
+                    return constantExpression.Value!;
+
+                case MemberExpression memberExpression:
+                    var container = GetExpressionValue(memberExpression.Expression!);
+                    var member = memberExpression.Member;
+                    switch (member)
+                    {
+                        case FieldInfo fieldInfo:
+                            return fieldInfo.GetValue(container);
+
+                        case PropertyInfo propertyInfo:
+                            return propertyInfo.GetValue(container);
+
+                        default:
+                            throw new NotSupportedException(
+                                $"The member type '{member.GetType().Name}' is not supported.");
+                    }
+                default:
+                    throw new NotSupportedException(
+                        $"The expression type '{expression.GetType().Name}' is not supported.");
+            }
         }
 
         private void ProcessComparison(BinaryExpression node, bool isGreaterThan, bool isEqual = false)
@@ -294,7 +460,7 @@ namespace XperienceCommunity.DataContext
             }
             else if (node.Left is MethodCallExpression leftMethod && node.Right is ConstantExpression rightConst)
             {
-                var memberName = leftMethod.GetMemberNameFromMethodCall();
+                var memberName = GetMemberNameFromMethodCall(leftMethod);
 
                 if (memberName != null)
                 {
@@ -336,24 +502,28 @@ namespace XperienceCommunity.DataContext
 
         private void ProcessEnumerableContains(MethodCallExpression node)
         {
-            if (node.Arguments[0] is MemberExpression memberExpression &&
+            if (node.Arguments.Count == 2 &&
+                node.Arguments[0] is MemberExpression memberExpression &&
                 node.Arguments[1] is ConstantExpression listExpression)
             {
                 var columnName = memberExpression.Member.Name;
-                var values = (IEnumerable<object>)listExpression.Value!;
+                var values = ExtractValues(listExpression.Value);
 
-                if (listExpression.Type.GenericTypeArguments[0] == typeof(int))
-                {
-                    _queryParameters.Where(where => where.WhereIn(columnName, values.Cast<int>().ToArray()));
-                }
-                else if (listExpression.Type.GenericTypeArguments[0] == typeof(string))
-                {
-                    _queryParameters.Where(where => where.WhereIn(columnName, values.Cast<string>().ToArray()));
-                }
-                else if (listExpression.Type.GenericTypeArguments[0] == typeof(Guid))
-                {
-                    _queryParameters.Where(where => where.WhereIn(columnName, values.Cast<Guid>().ToArray()));
-                }
+                AddWhereInCondition(columnName, values);
+            }
+            else if (node.Arguments.Count == 2 &&
+                     node.Arguments[0] is MemberExpression collectionExpression &&
+                     node.Arguments[1] is MemberExpression itemExpression)
+            {
+                var collection = ExtractFieldValues(collectionExpression);
+                var columnName = itemExpression.Member.Name;
+
+                AddWhereInCondition(columnName, collection);
+            }
+            else
+            {
+                throw new NotSupportedException(
+                    $"The expression types '{node.Arguments[0]?.GetType().Name}' and '{node.Arguments[1]?.GetType().Name}' are not supported.");
             }
         }
 
@@ -396,7 +566,7 @@ namespace XperienceCommunity.DataContext
                 throw new NotSupportedException(
                     $"The left expression type '{node.Left.GetType().Name}' is not supported.");
             }
-        } 
+        }
 
         private void ProcessLogicalAnd(BinaryExpression node)
         {
@@ -454,11 +624,43 @@ namespace XperienceCommunity.DataContext
             }
         }
 
+        private Expression ProcessQueryableSelect(MethodCallExpression node)
+        {
+            if (node.Arguments[1] is UnaryExpression unaryExpression &&
+                unaryExpression.Operand is LambdaExpression lambdaExpression)
+            {
+                Visit(lambdaExpression.Body);
+            }
+            else
+            {
+                throw new NotSupportedException(
+                    $"The expression type '{node.Arguments[1].GetType().Name}' is not supported.");
+            }
+
+            return node;
+        }
+
+        private Expression ProcessQueryableWhere(MethodCallExpression node)
+        {
+            if (node.Arguments[1] is UnaryExpression unaryExpression &&
+                unaryExpression.Operand is LambdaExpression lambdaExpression)
+            {
+                Visit(lambdaExpression.Body);
+            }
+            else
+            {
+                throw new NotSupportedException(
+                    $"The expression type '{node.Arguments[1].GetType().Name}' is not supported.");
+            }
+
+            return node;
+        }
+
         private void ProcessStringContains(MethodCallExpression node)
         {
             if (node.Object is MemberExpression member && node.Arguments[0] is ConstantExpression constant)
             {
-                _queryParameters.Where(where => where.WhereContains(member.Member.Name, constant.Value?.ToString()));
+                _queryParameters.Where(where => where.WhereContains(member.Member.Name, constant?.Value?.ToString()));
             }
         }
 
@@ -466,7 +668,7 @@ namespace XperienceCommunity.DataContext
         {
             if (node.Object is MemberExpression member && node.Arguments[0] is ConstantExpression constant)
             {
-                _queryParameters.Where(where => where.WhereStartsWith(member.Member.Name, constant.Value?.ToString()));
+                _queryParameters.Where(where => where.WhereStartsWith(member.Member.Name, constant?.Value?.ToString()));
             }
         }
     }
