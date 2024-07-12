@@ -308,13 +308,13 @@ namespace XperienceCommunity.DataContext
             return null;
         }
 
-        private IEnumerable<object> ExtractFieldValues(MemberExpression fieldExpression)
+        private static IEnumerable<object> ExtractFieldValues(MemberExpression fieldExpression)
         {
             var value = GetExpressionValue(fieldExpression);
             return ExtractValues(value);
         }
 
-        private object? GetExpressionValue(Expression expression)
+        private static object? GetExpressionValue(Expression expression)
         {
             switch (expression)
             {
