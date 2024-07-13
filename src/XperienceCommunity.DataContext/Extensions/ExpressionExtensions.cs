@@ -82,7 +82,7 @@ namespace XperienceCommunity.DataContext.Extensions
             return null;
         }
 
-        private static IEnumerable<object> ExtractValues(object? value)
+        public static IEnumerable<object> ExtractValues(this object? value)
         {
             if (value is null)
             {

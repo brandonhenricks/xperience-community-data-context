@@ -228,6 +228,9 @@ namespace XperienceCommunity.DataContext
                 var visitor = new ContentItemQueryExpressionVisitor(manager);
 
                 visitor.Visit(expression);
+
+                // Apply conditions before returning the query parameters
+                manager.ApplyConditions();
             });
 
             if (!string.IsNullOrEmpty(_language))

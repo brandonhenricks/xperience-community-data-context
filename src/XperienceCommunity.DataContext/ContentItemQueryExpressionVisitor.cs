@@ -10,6 +10,8 @@ namespace XperienceCommunity.DataContext
     internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
     {
         private readonly QueryParameterManager _parameterManager;
+
+        private readonly Dictionary<ExpressionType, IExpressionProcessor<BinaryExpression>> _binaryExpressionProcessors;
         private readonly Dictionary<Type, IExpressionProcessor> _expressionProcessors;
         private string? _currentMemberName;
         private object? _currentValue;
@@ -18,9 +20,20 @@ namespace XperienceCommunity.DataContext
         {
             _parameterManager = parameterManager ?? throw new ArgumentNullException(nameof(parameterManager));
 
+            _binaryExpressionProcessors = new Dictionary<ExpressionType, IExpressionProcessor<BinaryExpression>>
+            {
+                { ExpressionType.Equal, new EqualityExpressionProcessor(_parameterManager) },
+                { ExpressionType.NotEqual, new EqualityExpressionProcessor(_parameterManager, isEqual: false) },
+                { ExpressionType.GreaterThan, new ComparisonExpressionProcessor(_parameterManager, isGreaterThan: true) },
+                { ExpressionType.GreaterThanOrEqual, new ComparisonExpressionProcessor(_parameterManager, isGreaterThan: true, isEqual: true) },
+                { ExpressionType.LessThan, new ComparisonExpressionProcessor(_parameterManager, isGreaterThan: false) },
+                { ExpressionType.LessThanOrEqual, new ComparisonExpressionProcessor(_parameterManager, isGreaterThan: false, isEqual: true) },
+                { ExpressionType.AndAlso, new LogicalExpressionProcessor(_parameterManager, isAnd: true) },
+                { ExpressionType.OrElse, new LogicalExpressionProcessor(_parameterManager, isAnd: false) }
+            };
+
             _expressionProcessors = new Dictionary<Type, IExpressionProcessor>
             {
-                { typeof(BinaryExpression), new BinaryExpressionProcessor(_parameterManager) },
                 { typeof(MethodCallExpression), new MethodCallExpressionProcessor(_parameterManager) },
                 { typeof(UnaryExpression), new UnaryExpressionProcessor(_parameterManager) }
             };
@@ -37,9 +50,9 @@ namespace XperienceCommunity.DataContext
 
         protected override Expression VisitBinary(BinaryExpression node)
         {
-            if (_expressionProcessors.TryGetValue(node.GetType(), out var processor))
+            if (_binaryExpressionProcessors.TryGetValue(node.NodeType, out var processor))
             {
-                ((IExpressionProcessor<BinaryExpression>)processor).Process(node);
+                processor.Process(node);
                 return node;
             }
 
@@ -48,7 +61,7 @@ namespace XperienceCommunity.DataContext
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            if (_expressionProcessors.TryGetValue(node.GetType(), out var processor))
+            if (_expressionProcessors.TryGetValue(typeof(MethodCallExpression), out var processor))
             {
                 ((IExpressionProcessor<MethodCallExpression>)processor).Process(node);
                 return node;
@@ -59,7 +72,7 @@ namespace XperienceCommunity.DataContext
 
         protected override Expression VisitUnary(UnaryExpression node)
         {
-            if (_expressionProcessors.TryGetValue(node.GetType(), out var processor))
+            if (_expressionProcessors.TryGetValue(typeof(UnaryExpression), out var processor))
             {
                 ((IExpressionProcessor<UnaryExpression>)processor).Process(node);
                 return node;
