@@ -223,7 +223,9 @@ namespace XperienceCommunity.DataContext
                     subQuery.Offset(_offset.Item1.Value, _offset.Item2.Value);
                 }
 
-                var visitor = new ContentItemQueryExpressionVisitor(subQuery);
+                var manager = new QueryParameterManager(subQuery);
+
+                var visitor = new ContentItemQueryExpressionVisitor(manager);
 
                 visitor.Visit(expression);
             });
