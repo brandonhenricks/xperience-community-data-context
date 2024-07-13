@@ -17,7 +17,7 @@ namespace XperienceCommunity.DataContext.Processors
         public void Process(BinaryExpression node)
         {
             var logicalOperator = _isAnd ? "AND" : "OR";
-            _parameterManager.AddLogicalOperator(logicalOperator);
+            _parameterManager.AddLogicalCondition(logicalOperator);
         }
     }
 }

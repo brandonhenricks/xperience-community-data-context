@@ -18,7 +18,7 @@ namespace XperienceCommunity.DataContext.Processors
         {
             if (node.Left is MemberExpression member && node.Right is ConstantExpression constant)
             {
-                _parameterManager.AddParameter(member.Member.Name, (_isEqual ? constant.Value : $"!{constant.Value}")!);
+                _parameterManager.AddEqualsCondition(member.Member.Name, (_isEqual ? constant.Value : constant.Value)!);
             }
             else
             {
