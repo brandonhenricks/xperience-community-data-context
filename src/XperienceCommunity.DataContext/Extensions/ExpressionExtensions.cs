@@ -134,7 +134,7 @@ namespace XperienceCommunity.DataContext.Extensions
                 return ExtractValues(collectionValue);
             }
 
-            return new[] { value };
+            return [value];
         }
     }
 }

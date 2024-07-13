@@ -3,6 +3,7 @@ using CMS.ContentEngine;
 using CMS.Helpers;
 using CMS.Websites;
 using CMS.Websites.Routing;
+using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Extensions;
 using XperienceCommunity.DataContext.Interfaces;
 
@@ -14,14 +15,17 @@ namespace XperienceCommunity.DataContext
         private readonly string _contentType;
         private readonly PageContentQueryExecutor<T> _pageContentQueryExecutor;
         private readonly IWebsiteChannelContext _websiteChannelContext;
+        private readonly XperienceDataContextConfig _config;
         private string? _channelName;
+        private bool? _includeTotalCount;
         private string? _language;
         private int? _linkedItemsDepth;
+        private (int?, int?) _offset;
         private PathMatch? _pathMatch;
         private IQueryable<T>? _query;
 
         public PageContentContext(IProgressiveCache cache, PageContentQueryExecutor<T> pageContentQueryExecutor,
-            IWebsiteChannelContext websiteChannelContext)
+            IWebsiteChannelContext websiteChannelContext, XperienceDataContextConfig config)
         {
             ArgumentNullException.ThrowIfNull(cache);
             ArgumentNullException.ThrowIfNull(websiteChannelContext);
@@ -32,6 +36,7 @@ namespace XperienceCommunity.DataContext
                            throw new InvalidOperationException("Content type name could not be determined.");
             _pageContentQueryExecutor = pageContentQueryExecutor;
             _websiteChannelContext = websiteChannelContext;
+            _config = config;
         }
 
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
@@ -54,9 +59,25 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
+        public IDataContext<T> IncludeTotalCount(bool includeTotalCount)
+        {
+            _includeTotalCount = includeTotalCount;
+            return this;
+        }
+
         public IDataContext<T> InLanguage(string language, bool useFallBack = true)
         {
             _language = language;
+            return this;
+        }
+
+        public IDataContext<T> Offset(int start, int count)
+        {
+            if (start >= 0 && count >= 0)
+            {
+                _offset = (start, count);
+            }
+
             return this;
         }
 
@@ -177,6 +198,16 @@ namespace XperienceCommunity.DataContext
                     subQuery.TopN(topN.Value);
                 }
 
+                if (_includeTotalCount.HasValue)
+                {
+                    subQuery.IncludeTotalCount();
+                }
+
+                if (_offset is { Item1: not null, Item2: not null })
+                {
+                    subQuery.Offset(_offset.Item1.Value, _offset.Item2.Value);
+                }
+
                 var visitor = new ContentItemQueryExpressionVisitor(subQuery);
 
                 visitor.Visit(expression);
@@ -228,7 +259,7 @@ namespace XperienceCommunity.DataContext
                 return await executeFunc();
             }
 
-            var cacheSettings = new CacheSettings(10, true, cacheKey);
+            var cacheSettings = new CacheSettings(_config.CacheTimeOut, true, cacheKey);
 
             return await _cache.LoadAsync(async cs =>
             {
