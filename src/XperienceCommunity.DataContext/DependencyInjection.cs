@@ -14,7 +14,7 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
         /// <param name="cacheInMinutes"></param>
-        /// <returns>The modified <see cref="XperienceContextBuilder"/>.</returns>
+        /// <returns>The <see cref="IServiceCollection"/>.</returns>
         public static IServiceCollection AddXperienceDataContext(this IServiceCollection services, int? cacheInMinutes)
         {
             services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));

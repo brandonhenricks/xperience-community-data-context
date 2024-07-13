@@ -2,7 +2,6 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using CMS.ContentEngine;
-using XperienceCommunity.DataContext.Extensions;
 
 namespace XperienceCommunity.DataContext
 {
