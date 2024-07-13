@@ -40,6 +40,12 @@ namespace XperienceCommunity.DataContext.Processors
                 case ExpressionType.OrElse:
                     ProcessLogical(node, isAnd: false);
                     break;
+                case ExpressionType.And:
+                    ProcessLogical(node, true);
+                    break;
+                case ExpressionType.Or:
+                    ProcessLogical(node, false);
+                    break;
                 default:
                     throw new NotSupportedException($"The binary expression type '{node.NodeType}' is not supported.");
             }
