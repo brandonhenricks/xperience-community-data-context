@@ -2,7 +2,11 @@
 
 namespace XperienceCommunity.DataContext.Interfaces
 {
-    internal interface IExpressionProcessor<in T> where T : Expression
+    internal interface IExpressionProcessor
+    {
+    }
+
+    internal interface IExpressionProcessor<in T>: IExpressionProcessor where T : Expression
     {
         void Process(T node);
     }
