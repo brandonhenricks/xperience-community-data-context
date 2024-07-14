@@ -1,4 +1,5 @@
-﻿using CMS.ContentEngine;
+﻿using System.Diagnostics.CodeAnalysis;
+using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Interfaces;
 
@@ -20,6 +21,7 @@ namespace XperienceCommunity.DataContext
             _processors = processors ?? [];
         }
 
+        [return: NotNull]
         public async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
             ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
@@ -30,7 +32,7 @@ namespace XperienceCommunity.DataContext
 
                 if (!_processors.Any())
                 {
-                    return results;
+                    return results ?? [];
                 }
 
                 foreach (var result in results)
@@ -41,7 +43,7 @@ namespace XperienceCommunity.DataContext
                     }
                 }
 
-                return results;
+                return results ?? [];
             }
             catch (Exception ex)
             {
