@@ -2,12 +2,19 @@
 
 namespace XperienceCommunity.DataContext.Interfaces
 {
+    /// <summary>
+    /// Represents a marker interface for processing expression nodes.
+    /// </summary>
     internal interface IExpressionProcessor
     {
     }
 
-    internal interface IExpressionProcessor<in T>: IExpressionProcessor where T : Expression
+    internal interface IExpressionProcessor<in T> : IExpressionProcessor where T : Expression
     {
+        /// <summary>
+        /// Processes the specified expression node.
+        /// </summary>
+        /// <param name="node">The expression node to process.</param>
         void Process(T node);
     }
 }

@@ -54,24 +54,28 @@ namespace XperienceCommunity.DataContext
             return result?.FirstOrDefault();
         }
 
+        [return: NotNull]
         public IPageContentContext<T> InChannel(string channelName)
         {
             _channelName = channelName;
             return this;
         }
 
+        [return: NotNull]
         public IDataContext<T> IncludeTotalCount(bool includeTotalCount)
         {
             _includeTotalCount = includeTotalCount;
             return this;
         }
 
+        [return: NotNull]
         public IDataContext<T> InLanguage(string language, bool useFallBack = true)
         {
             _language = language;
             return this;
         }
 
+        [return: NotNull]
         public IDataContext<T> Offset(int start, int count)
         {
             if (start >= 0 && count >= 0)
@@ -82,12 +86,14 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
+        [return: NotNull]
         public IPageContentContext<T> OnPath(PathMatch pathMatch)
         {
             _pathMatch = pathMatch;
             return this;
         }
 
+        [return: NotNull]
         public IDataContext<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector)
         {
             InitializeQuery();
@@ -97,6 +103,7 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
+        [return: NotNull]
         public IDataContext<T> Take(int count)
         {
             InitializeQuery();
@@ -122,6 +129,7 @@ namespace XperienceCommunity.DataContext
             return result ?? [];
         }
 
+        [return: NotNull]
         public IDataContext<T> Where(Expression<Func<T, bool>> predicate)
         {
             InitializeQuery();
@@ -136,6 +144,7 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="depth">The depth of linked items to include.</param>
         /// <returns>The current context for chaining.</returns>
+        [return: NotNull]
         public IDataContext<T> WithLinkedItems(int depth)
         {
             _linkedItemsDepth = depth;
@@ -143,6 +152,7 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
+        [return: NotNull]
         private static string[] GetCacheDependencies(IEnumerable<T> data)
         {
             var keys = new HashSet<string>();
@@ -158,6 +168,7 @@ namespace XperienceCommunity.DataContext
             return keys.ToArray();
         }
 
+        [return: NotNull]
         private static string[] GetCacheDependencies<T>(T data)
         {
             if (data is IEnumerable<T> items)
@@ -173,23 +184,32 @@ namespace XperienceCommunity.DataContext
             return [];
         }
 
+        [return: NotNull]
+        private string GetChannelName() => !string.IsNullOrWhiteSpace(_channelName)
+            ? _channelName
+            : _websiteChannelContext.WebsiteChannelName;
+
         /// <summary>
         /// Builds a content item query based on the specified expression.
         /// </summary>
         /// <param name="expression">The expression to build the query.</param>
         /// <param name="topN">Optional parameter to limit the number of items.</param>
         /// <returns>The constructed content item query builder.</returns>
+        [return: NotNull]
         private ContentItemQueryBuilder BuildQuery(Expression expression, int? topN = null)
         {
+            var channelName = GetChannelName();
+
             var queryBuilder = new ContentItemQueryBuilder().ForContentType(_contentType, subQuery =>
             {
                 if (_pathMatch is null)
                 {
-                    subQuery.ForWebsite(_channelName);
+
+                    subQuery.ForWebsite(channelName);
                 }
                 else
                 {
-                    subQuery.ForWebsite(_channelName, _pathMatch);
+                    subQuery.ForWebsite(channelName, _pathMatch);
                 }
 
                 if (_linkedItemsDepth.HasValue)
@@ -231,6 +251,7 @@ namespace XperienceCommunity.DataContext
         /// Creates query options based on the current context.
         /// </summary>
         /// <returns>The content query execution options.</returns>
+        [return: NotNull]
         private ContentQueryExecutionOptions CreateQueryOptions()
         {
             var queryOptions = new ContentQueryExecutionOptions { ForPreview = _websiteChannelContext.IsPreview };
@@ -245,11 +266,9 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="queryBuilder">The query builder.</param>
         /// <returns>The generated cache key.</returns>
-        private string GetCacheKey(ContentItemQueryBuilder queryBuilder)
-        {
-            return
-                $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelName}|{_language}|{queryBuilder.GetHashCode()}";
-        }
+        [return: NotNull]
+        private string GetCacheKey(ContentItemQueryBuilder queryBuilder) => $"data|{_contentType}|{GetChannelName()}|{_language}|{queryBuilder.GetHashCode()}";
+
 
         /// <summary>
         /// Retrieves data from cache or executes the provided function if cache is bypassed or data is not found.

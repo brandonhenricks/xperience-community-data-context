@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using CMS.ContentEngine;
 using CMS.Helpers;
 using CMS.Websites.Routing;
@@ -15,10 +16,10 @@ namespace XperienceCommunity.DataContext
     public sealed class ContentItemContext<T> : IContentItemContext<T> where T : class, IContentItemFieldsSource, new()
     {
         private readonly IProgressiveCache _cache;
+        private readonly XperienceDataContextConfig _config;
         private readonly ContentQueryExecutor<T> _contentQueryExecutor;
         private readonly string _contentType;
         private readonly IWebsiteChannelContext _websiteChannelContext;
-        private readonly XperienceDataContextConfig _config;
         private bool? _includeTotalCount;
         private string? _language;
         private int? _linkedItemsDepth;
@@ -45,7 +46,7 @@ namespace XperienceCommunity.DataContext
             _contentQueryExecutor = contentQueryExecutor;
             _config = config;
             _contentType = typeof(T).GetContentTypeName() ??
-                                             throw new InvalidOperationException("Content type name could not be determined.");
+                           throw new InvalidOperationException("Content type name could not be determined.");
         }
 
         /// <summary>
@@ -67,7 +68,7 @@ namespace XperienceCommunity.DataContext
 
             return result?.FirstOrDefault();
         }
-
+        
         public IDataContext<T> IncludeTotalCount(bool includeTotalCount)
         {
             _includeTotalCount = includeTotalCount;
@@ -132,7 +133,7 @@ namespace XperienceCommunity.DataContext
 
             var queryOptions = CreateQueryOptions();
 
-            var results= await GetOrCacheAsync(
+            var results = await GetOrCacheAsync(
                 () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
 
@@ -201,6 +202,7 @@ namespace XperienceCommunity.DataContext
         /// <param name="expression">The expression to build the query.</param>
         /// <param name="topN">Optional parameter to limit the number of items.</param>
         /// <returns>The constructed content item query builder.</returns>
+        [return: NotNull]
         private ContentItemQueryBuilder BuildQuery(Expression expression, int? topN = null)
         {
             var queryBuilder = new ContentItemQueryBuilder().ForContentType(_contentType, subQuery =>
@@ -209,6 +211,7 @@ namespace XperienceCommunity.DataContext
                 {
                     subQuery.WithLinkedItems(_linkedItemsDepth.Value);
                 }
+
 
                 if (topN.HasValue)
                 {
@@ -247,6 +250,7 @@ namespace XperienceCommunity.DataContext
         /// Creates query options based on the current context.
         /// </summary>
         /// <returns>The content query execution options.</returns>
+        [return: NotNull]
         private ContentQueryExecutionOptions CreateQueryOptions()
         {
             var queryOptions = new ContentQueryExecutionOptions { ForPreview = _websiteChannelContext.IsPreview };
@@ -261,11 +265,13 @@ namespace XperienceCommunity.DataContext
         /// </summary>
         /// <param name="queryBuilder">The query builder.</param>
         /// <returns>The generated cache key.</returns>
+        [return: NotNull]
         private string GetCacheKey(ContentItemQueryBuilder queryBuilder)
         {
             return
-                $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelName}|{_language}|{queryBuilder.GetHashCode()}";
+                $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelID}|{_language}|{queryBuilder.GetHashCode()}";
         }
+
 
         /// <summary>
         /// Retrieves data from cache or executes the provided function if cache is bypassed or data is not found.

@@ -4,7 +4,7 @@ using XperienceCommunity.DataContext.Extensions;
 
 namespace XperienceCommunity.DataContext
 {
-    internal class QueryParameterManager
+    internal sealed class QueryParameterManager
     {
         private readonly ContentTypeQueryParameters _queryParameters;
         private readonly List<Action<WhereParameters>> _whereActions;
@@ -15,7 +15,7 @@ namespace XperienceCommunity.DataContext
             _whereActions = new List<Action<WhereParameters>>();
         }
 
-        public void AddComparisonCondition(string key, string comparisonOperator, object? value)
+        internal void AddComparisonCondition(string key, string comparisonOperator, object? value)
         {
             if (value == null)
             {
@@ -45,7 +45,7 @@ namespace XperienceCommunity.DataContext
             }
         }
 
-        public void AddEqualsCondition(string key, object? value)
+        internal void AddEqualsCondition(string key, object? value)
         {
             if (value == null)
             {
@@ -55,7 +55,7 @@ namespace XperienceCommunity.DataContext
             _whereActions.Add(where => where.WhereEquals(key, value));
         }
 
-        public void AddLogicalCondition(string logicalOperator)
+        internal void AddLogicalCondition(string logicalOperator)
         {
             switch (logicalOperator.ToUpper())
             {
@@ -72,7 +72,7 @@ namespace XperienceCommunity.DataContext
             }
         }
 
-        public void AddMethodCall(string methodName, params object[] parameters)
+        internal void AddMethodCall(string methodName, params object[] parameters)
         {
             switch (methodName)
             {
@@ -85,7 +85,7 @@ namespace XperienceCommunity.DataContext
             }
         }
 
-        private void AddContainsMethod(object[] parameters)
+        internal void AddContainsMethod(object[] parameters)
         {
             if (parameters.Length != 2)
             {
@@ -114,7 +114,7 @@ namespace XperienceCommunity.DataContext
             }
         }
 
-        public void AddNotEqualsCondition(string key, object? value)
+        internal void AddNotEqualsCondition(string key, object? value)
         {
             if (value == null)
             {
@@ -124,7 +124,7 @@ namespace XperienceCommunity.DataContext
             _whereActions.Add(where => where.WhereNotEquals(key, value));
         }
 
-        public void ApplyConditions()
+        internal void ApplyConditions()
         {
             _queryParameters.Where(whereParameters =>
             {
@@ -138,12 +138,12 @@ namespace XperienceCommunity.DataContext
             _whereActions.Clear();
         }
 
-        public ContentTypeQueryParameters GetQueryParameters()
+        internal ContentTypeQueryParameters GetQueryParameters()
         {
             return _queryParameters;
         }
 
-        public void AddStringContains(MethodCallExpression node)
+        internal void AddStringContains(MethodCallExpression node)
         {
             if (node.Object is MemberExpression member && node.Arguments[0] is ConstantExpression constant)
             {
@@ -151,7 +151,7 @@ namespace XperienceCommunity.DataContext
             }
         }
 
-        public void AddStringStartsWith(MethodCallExpression node)
+        internal void AddStringStartsWith(MethodCallExpression node)
         {
             if (node.Object is MemberExpression member && node.Arguments[0] is ConstantExpression constant)
             {
@@ -159,7 +159,7 @@ namespace XperienceCommunity.DataContext
             }
         }
 
-        public void AddEnumerableContains(MethodCallExpression node)
+        internal void AddEnumerableContains(MethodCallExpression node)
         {
             if (node.Arguments.Count == 2)
             {
@@ -209,7 +209,7 @@ namespace XperienceCommunity.DataContext
         }
 
 
-        public Expression AddQueryableSelect(MethodCallExpression node)
+        internal Expression AddQueryableSelect(MethodCallExpression node)
         {
             if (node.Arguments[1] is UnaryExpression unaryExpression &&
                 unaryExpression.Operand is LambdaExpression lambdaExpression)
@@ -226,7 +226,7 @@ namespace XperienceCommunity.DataContext
             return node;
         }
 
-        public Expression AddQueryableWhere(MethodCallExpression node)
+        internal Expression AddQueryableWhere(MethodCallExpression node)
         {
             if (node.Arguments[1] is UnaryExpression unaryExpression &&
                 unaryExpression.Operand is LambdaExpression lambdaExpression)
@@ -243,7 +243,7 @@ namespace XperienceCommunity.DataContext
             return node;
         }
 
-        public void AddWhereInCondition(string key, object?[] collection)
+        internal void AddWhereInCondition(string key, object?[] collection)
         {
             if (collection == null || collection.Length == 0)
             {
