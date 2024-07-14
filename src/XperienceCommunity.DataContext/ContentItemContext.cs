@@ -65,7 +65,7 @@ namespace XperienceCommunity.DataContext
                 () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
 
-            return result.FirstOrDefault();
+            return result?.FirstOrDefault();
         }
 
         public IDataContext<T> IncludeTotalCount(bool includeTotalCount)
@@ -132,9 +132,11 @@ namespace XperienceCommunity.DataContext
 
             var queryOptions = CreateQueryOptions();
 
-            return await GetOrCacheAsync(
+            var results= await GetOrCacheAsync(
                 () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
+
+            return results ?? [];
         }
 
         /// <summary>
@@ -272,7 +274,7 @@ namespace XperienceCommunity.DataContext
         /// <param name="executeFunc">The function to execute if cache is bypassed or data is not found.</param>
         /// <param name="cacheKey">The cache key.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the cached or executed data.</returns>
-        private async Task<T> GetOrCacheAsync<T>(Func<Task<T>> executeFunc, string cacheKey) where T : class
+        private async Task<T?> GetOrCacheAsync<T>(Func<Task<T>> executeFunc, string cacheKey) where T : class
         {
             if (_websiteChannelContext.IsPreview)
             {
@@ -284,6 +286,13 @@ namespace XperienceCommunity.DataContext
             return await _cache.LoadAsync(async cs =>
             {
                 var result = await executeFunc();
+
+                cs.BoolCondition = result != null;
+
+                if (!cs.Cached)
+                {
+                    return result;
+                }
 
                 cs.CacheDependency = CacheHelper.GetCacheDependency(GetCacheDependencies(result));
 
