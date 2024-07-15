@@ -3,7 +3,7 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors
 {
-    internal class ComparisonExpressionProcessor : IExpressionProcessor<BinaryExpression>
+    internal sealed class ComparisonExpressionProcessor : IExpressionProcessor<BinaryExpression>
     {
         private readonly QueryParameterManager _parameterManager;
         private readonly bool _isGreaterThan;
@@ -18,7 +18,7 @@ namespace XperienceCommunity.DataContext.Processors
 
         public void Process(BinaryExpression node)
         {
-            if (node.Left is MemberExpression member && node.Right is ConstantExpression constant)
+            if (node is { Left: MemberExpression member, Right: ConstantExpression constant })
             {
                 var comparisonOperator = _isGreaterThan ? ">" : "<";
 

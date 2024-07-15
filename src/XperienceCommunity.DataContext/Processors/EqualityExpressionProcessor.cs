@@ -3,7 +3,7 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors
 {
-    internal class EqualityExpressionProcessor : IExpressionProcessor<BinaryExpression>
+    internal sealed class EqualityExpressionProcessor : IExpressionProcessor<BinaryExpression>
     {
         private readonly QueryParameterManager _parameterManager;
         private readonly bool _isEqual;
@@ -16,23 +16,23 @@ namespace XperienceCommunity.DataContext.Processors
 
         public void Process(BinaryExpression node)
         {
-            if (node.Left is MemberExpression leftMember && node.Right is ConstantExpression rightConstant)
+            if (node is { Left: MemberExpression leftMember, Right: ConstantExpression rightConstant })
             {
                 ProcessMemberToConstant(leftMember, rightConstant);
             }
-            else if (node.Left is ConstantExpression leftConstant && node.Right is MemberExpression rightMember)
+            else if (node is { Left: ConstantExpression leftConstant, Right: MemberExpression rightMember })
             {
                 ProcessMemberToConstant(rightMember, leftConstant);
             }
-            else if (node.Left is MemberExpression memberLeft && node.Right is UnaryExpression unaryRight)
+            else if (node is { Left: MemberExpression memberLeft, Right: UnaryExpression unaryRight })
             {
                 ProcessMemberToUnary(memberLeft, unaryRight);
             }
-            else if (node.Left is UnaryExpression unaryLeft && node.Right is MemberExpression memberRight)
+            else if (node is { Left: UnaryExpression unaryLeft, Right: MemberExpression memberRight })
             {
                 ProcessMemberToUnary(memberRight, unaryLeft);
             }
-            else if (node.Left is MemberExpression leftMemberExpression && node.Right is MemberExpression rightMemberExpression)
+            else if (node is { Left: MemberExpression leftMemberExpression, Right: MemberExpression rightMemberExpression })
             {
                 ProcessMemberToMember(leftMemberExpression, rightMemberExpression);
             }

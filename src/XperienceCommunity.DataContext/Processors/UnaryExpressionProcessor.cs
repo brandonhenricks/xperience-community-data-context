@@ -1,10 +1,9 @@
 ﻿using System.Linq.Expressions;
-using CMS.DataEngine;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors
 {
-    internal class UnaryExpressionProcessor: IExpressionProcessor<UnaryExpression>
+    internal sealed class UnaryExpressionProcessor: IExpressionProcessor<UnaryExpression>
     {
         private readonly QueryParameterManager _parameterManager;
 

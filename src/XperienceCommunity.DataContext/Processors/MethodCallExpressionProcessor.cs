@@ -3,7 +3,7 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors
 {
-    internal class MethodCallExpressionProcessor : IExpressionProcessor<MethodCallExpression>
+    internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<MethodCallExpression>
     {
         private readonly QueryParameterManager _parameterManager;
 

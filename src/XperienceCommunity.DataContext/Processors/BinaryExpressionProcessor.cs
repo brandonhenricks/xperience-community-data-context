@@ -3,7 +3,7 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors
 {
-    internal class BinaryExpressionProcessor : IExpressionProcessor<BinaryExpression>
+    internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExpression>
     {
         private readonly QueryParameterManager _parameterManager;
 
@@ -53,7 +53,7 @@ namespace XperienceCommunity.DataContext.Processors
 
         private void ProcessEquality(BinaryExpression node, bool isEqual)
         {
-            if (node.Left is MemberExpression member && node.Right is ConstantExpression constant)
+            if (node is { Left: MemberExpression member, Right: ConstantExpression constant })
             {
                 if (isEqual)
                 {
@@ -72,7 +72,7 @@ namespace XperienceCommunity.DataContext.Processors
 
         private void ProcessComparison(BinaryExpression node, bool isGreaterThan, bool isEqual = false)
         {
-            if (node.Left is MemberExpression member && node.Right is ConstantExpression constant)
+            if (node is { Left: MemberExpression member, Right: ConstantExpression constant })
             {
                 var comparisonOperator = isGreaterThan ? ">" : "<";
                 if (isEqual)
