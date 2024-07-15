@@ -13,14 +13,15 @@ namespace XperienceCommunity.DataContext.Extensions
         /// <returns>The extracted values as an enumerable of objects.</returns>
         internal static IEnumerable<object>? ExtractCollectionValues(this MemberExpression collectionExpression)
         {
-            if (collectionExpression.Expression != null)
+            if (collectionExpression.Expression == null)
             {
-                var value = GetExpressionValue(collectionExpression.Expression);
-
-                return ExtractValues(value);
+                return null;
             }
 
-            return null;
+            var value = GetExpressionValue(collectionExpression.Expression);
+
+            return ExtractValues(value);
+
         }
 
         /// <summary>
@@ -49,18 +50,13 @@ namespace XperienceCommunity.DataContext.Extensions
                 case MemberExpression memberExpression:
                     var container = GetExpressionValue(memberExpression.Expression!);
                     var member = memberExpression.Member;
-                    switch (member)
+                    return member switch
                     {
-                        case FieldInfo fieldInfo:
-                            return fieldInfo.GetValue(container);
-
-                        case PropertyInfo propertyInfo:
-                            return propertyInfo.GetValue(container);
-
-                        default:
-                            throw new NotSupportedException(
-                                $"The member type '{member.GetType().Name}' is not supported.");
-                    }
+                        FieldInfo fieldInfo => fieldInfo.GetValue(container),
+                        PropertyInfo propertyInfo => propertyInfo.GetValue(container),
+                        _ => throw new NotSupportedException(
+                            $"The member type '{member.GetType().Name}' is not supported.")
+                    };
                 default:
                     throw new NotSupportedException(
                         $"The expression type '{expression.GetType().Name}' is not supported.");
@@ -125,7 +121,7 @@ namespace XperienceCommunity.DataContext.Extensions
             // Check if the object has a property that is a collection
             var properties = value.GetType().GetProperties();
 
-            var collectionProperty = properties.FirstOrDefault(p =>
+            var collectionProperty = Array.Find(properties, p =>
                 p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 
             if (collectionProperty != null)
