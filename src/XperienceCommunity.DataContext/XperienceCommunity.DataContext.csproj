@@ -10,7 +10,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/brandonhenricks/xperience-community-data-context</RepositoryUrl>
     <Authors>Brandon Henricks</Authors>
-    <Description>Add Expressions to Data Queries for Content Items, Page Items</Description>
+    <Description>Fluent API for query building using expressions for content retrieval in Xperience By Kentico projects.</Description>
     <IncludeSymbols>True</IncludeSymbols>
     <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>

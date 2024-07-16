@@ -42,7 +42,7 @@ public void ConfigureServices(IServiceCollection services)
 
 To leverage the `IContentItemContext` in your classes, you need to inject it via dependency injection. The `IContentItemContext` requires a class that implements the `IContentItemFieldSource` interface. For instance, you might have a `GenericContent` class designed for the Content Hub.
 
-### Example:
+### Querying Content Items Example:
 
 Assuming you have a `GenericContent` class that implements `IContentItemFieldSource`, you can inject the `IContentItemContext<GenericContent>` into your classes as follows:
 
@@ -77,6 +77,48 @@ var result = await _context
 ```
 
 This example demonstrates how to asynchronously retrieve the first content item that matches a given GUID, with a single level of linked items included, using the fluent API provided by XperienceCommunity.DataContext.
+
+### Querying Page Content Example:
+
+Assuming you have a `GenericPage` class that implements `IWebPageFieldsSource`, you can inject the `IPageContentContext<GenericPage>` into your classes as follows:
+
+```csharp
+public class GenericPageController: Controller
+{
+    private readonly IPageContentContext<GenericPage> _pageContext;
+    private readonly IWebPageDataContextRetriever _webPageDataContextRetriever;
+
+    public GenericPageController(IPageContentContext<GenericPage> pageContext
+            IWebPageDataContextRetriever webPageDataContextRetriever)
+    {
+        _pageContext = pageContext;
+        _webPageDataContextRetriever = webPageDataContextRetriever;
+    }
+
+    // Example method using the _contentItemContext
+    public async Task<IActionResult> IndexAsync()
+    {           
+         var page = _webPageDataContextRetriever.Retrieve().WebPage;
+
+        if (page == null)
+        {
+            return NotFound();
+        }
+
+        var content = await _pageContext
+            .FirstOrDefaultAsync(x => x.SystemFields.WebPageItemID == page.WebPageItemID, HttpContext.RequestAborted);
+
+        if (content == null)
+        {
+            return NotFound();
+        }
+
+        return View(conent);
+    }
+}
+```
+This example demonstrates how to asynchronously retrieve the first page content item that matches a given ID, using the fluent API provided by XperienceCommunity.DataContext.
+
 ## Built With
 
 * [Xperience By Kentico](https://www.kentico.com) - Kentico Xperience

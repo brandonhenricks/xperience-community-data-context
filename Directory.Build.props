@@ -7,7 +7,7 @@
     <Copyright>Copyright © $(Company) $([System.DateTime]::Now.Year)</Copyright>
     <Trademark>$(Company)™</Trademark>
     <Product>XperienceCommunity.DataContext</Product>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>0.0.1</VersionPrefix>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Title>$(Product)</Title>
     <PackageProjectUrl>https://github.com/brandonhenricks/xperience-community-data-context</PackageProjectUrl>
@@ -23,7 +23,6 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <WarningsAsErrors>nullable</WarningsAsErrors>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
