@@ -26,6 +26,7 @@ namespace XperienceCommunity.DataContext
         private (int?, int?) _offset;
         private IQueryable<T>? _query;
         private bool? _useFallBack;
+        private IList<string>? _columnNames;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentItemContext{T}"/> class.
@@ -154,6 +155,18 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
+        public IDataContext<T> WithColumns(params string[] columnNames)
+        {
+            _columnNames ??= new List<string>(columnNames.Length);
+
+            foreach (var column in columnNames)
+            {
+                _columnNames.Add(column);
+            }
+
+            return this;
+        }
+
         /// <summary>
         /// Includes linked items in the query.
         /// </summary>
@@ -212,6 +225,10 @@ namespace XperienceCommunity.DataContext
                     subQuery.WithLinkedItems(_linkedItemsDepth.Value);
                 }
 
+                if (_columnNames?.Count > 0)
+                {
+                    subQuery.Columns(_columnNames.ToArray());
+                }
 
                 if (topN.HasValue)
                 {

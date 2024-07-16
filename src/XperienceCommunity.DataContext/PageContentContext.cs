@@ -23,6 +23,7 @@ namespace XperienceCommunity.DataContext
         private int? _linkedItemsDepth;
         private (int?, int?) _offset;
         private PathMatch? _pathMatch;
+        private IList<string>? _columnNames;
         private IQueryable<T>? _query;
 
         public PageContentContext(IProgressiveCache cache, PageContentQueryExecutor<T> pageContentQueryExecutor,
@@ -153,6 +154,19 @@ namespace XperienceCommunity.DataContext
         }
 
         [return: NotNull]
+        public IDataContext<T> WithColumns(params string[] columnNames)
+        {
+            _columnNames ??= new List<string>(columnNames.Length);
+
+            foreach (var column in columnNames)
+            {
+                _columnNames.Add(column);
+            }
+
+            return this;
+        }
+
+        [return: NotNull]
         private static string[] GetCacheDependencies(IEnumerable<T> data)
         {
             var keys = new HashSet<string>();
@@ -210,6 +224,11 @@ namespace XperienceCommunity.DataContext
                 else
                 {
                     subQuery.ForWebsite(channelName, _pathMatch);
+                }
+                
+                if (_columnNames?.Count > 0)
+                {
+                    subQuery.Columns(_columnNames.ToArray());
                 }
 
                 if (_linkedItemsDepth.HasValue)
