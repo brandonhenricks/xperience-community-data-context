@@ -6,7 +6,7 @@ namespace XperienceCommunity.DataContext.Interfaces
     /// Defines the base contract for a data context that provides common query functionalities.
     /// </summary>
     /// <typeparam name="T">The type of the content item.</typeparam>
-    public interface IDataContext<T> where T : class
+    public interface IDataContext<T>
     {
         /// <summary>
         /// Retrieves the first or default item that matches the specified predicate asynchronously.
