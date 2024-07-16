@@ -95,7 +95,7 @@ public class GenericPageController: Controller
         _webPageDataContextRetriever = webPageDataContextRetriever;
     }
 
-    // Example method using the _contentItemContext
+    // Example method using the _pageContext
     public async Task<IActionResult> IndexAsync()
     {           
          var page = _webPageDataContextRetriever.Retrieve().WebPage;
