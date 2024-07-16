@@ -232,7 +232,7 @@ namespace XperienceCommunity.DataContext
                     paramConfig.Offset(_offset.Item1.Value, _offset.Item2.Value);
                 }
 
-                var manager = new QueryParameterManager(p);
+                var manager = new QueryParameterManager(paramConfig);
 
                 var visitor = new ContentItemQueryExpressionVisitor(manager);
 
