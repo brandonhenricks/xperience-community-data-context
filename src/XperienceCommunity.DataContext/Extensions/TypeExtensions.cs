@@ -11,6 +11,8 @@ namespace XperienceCommunity.DataContext.Extensions
     {
         private const string FieldName = "CONTENT_TYPE_NAME";
 
+        private const string ReusableSchemaFieldName = "REUSABLE_FIELD_SCHEMA_NAME";
+
         private static readonly ConcurrentDictionary<string, string> s_classNames =
             new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 

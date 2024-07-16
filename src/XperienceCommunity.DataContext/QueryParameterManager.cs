@@ -6,12 +6,19 @@ namespace XperienceCommunity.DataContext
 {
     internal sealed class QueryParameterManager
     {
-        private readonly ContentTypeQueryParameters _queryParameters;
+        private readonly ContentQueryParameters? _contentQueryParameters;
+        private readonly ContentTypeQueryParameters? _queryParameters;
         private readonly List<Action<WhereParameters>> _whereActions;
 
         public QueryParameterManager(ContentTypeQueryParameters queryParameters)
         {
             _queryParameters = queryParameters;
+            _whereActions = new List<Action<WhereParameters>>();
+        }
+
+        public QueryParameterManager(ContentQueryParameters contentQueryParameters)
+        {
+            _contentQueryParameters = contentQueryParameters;
             _whereActions = new List<Action<WhereParameters>>();
         }
 
@@ -126,7 +133,7 @@ namespace XperienceCommunity.DataContext
 
         internal void ApplyConditions()
         {
-            _queryParameters.Where(whereParameters =>
+            _queryParameters?.Where(whereParameters =>
             {
                 foreach (var action in _whereActions)
                 {
@@ -134,20 +141,23 @@ namespace XperienceCommunity.DataContext
                 }
             });
 
+            _contentQueryParameters?.Where(whereParameters =>
+            {
+                foreach (var action in _whereActions)
+                {
+                    action(whereParameters);
+                }
+            });
             // Clear the conditions after applying them
             _whereActions.Clear();
-        }
-
-        internal ContentTypeQueryParameters GetQueryParameters()
-        {
-            return _queryParameters;
         }
 
         internal void AddStringContains(MethodCallExpression node)
         {
             if (node.Object is MemberExpression member && node.Arguments[0] is ConstantExpression constant)
             {
-                _queryParameters.Where(where => where.WhereContains(member.Member.Name, constant?.Value?.ToString()));
+                _queryParameters?.Where(where => where.WhereContains(member.Member.Name, constant?.Value?.ToString()));
+                _contentQueryParameters?.Where(where => where.WhereContains(member.Member.Name, constant?.Value?.ToString()));
             }
         }
 
@@ -155,7 +165,8 @@ namespace XperienceCommunity.DataContext
         {
             if (node.Object is MemberExpression member && node.Arguments[0] is ConstantExpression constant)
             {
-                _queryParameters.Where(where => where.WhereStartsWith(member.Member.Name, constant?.Value?.ToString()));
+                _queryParameters?.Where(where => where.WhereStartsWith(member.Member.Name, constant?.Value?.ToString()));
+                _contentQueryParameters?.Where(where => where.WhereStartsWith(member.Member.Name, constant?.Value?.ToString()));
             }
         }
 
