@@ -18,20 +18,19 @@ namespace XperienceCommunity.DataContext.Interfaces
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Includes the total count of items in the query result.
+        /// </summary>
+        /// <param name="includeTotalCount">Indicates whether to include the total count of items in the query result.</param>
+        /// <returns>The current context for chaining.</returns>
+        IDataContext<T> IncludeTotalCount(bool includeTotalCount);
+
+        /// <summary>
         /// Filters the items by language.
         /// </summary>
         /// <param name="language">The language code to filter items.</param>
         /// <param name="useFallBack">Indicates whether to use fallback language if the specified language is not available.</param>
         /// <returns>The current context for chaining.</returns>
         IDataContext<T> InLanguage(string language, bool useFallBack = true);
-
-        /// <summary>
-        /// Orders the items based on the specified key selector.
-        /// </summary>
-        /// <typeparam name="TKey">The type of the key.</typeparam>
-        /// <param name="keySelector">The key selector to order items.</param>
-        /// <returns>The current context for chaining.</returns>
-        IDataContext<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector);
 
         /// <summary>
         /// Offsets the items by the specified start index and count.
@@ -42,18 +41,19 @@ namespace XperienceCommunity.DataContext.Interfaces
         IDataContext<T> Offset(int start, int count);
 
         /// <summary>
+        /// Orders the items based on the specified key selector.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the key.</typeparam>
+        /// <param name="keySelector">The key selector to order items.</param>
+        /// <returns>The current context for chaining.</returns>
+        IDataContext<T> OrderBy<TKey>(Expression<Func<T, TKey>> keySelector);
+
+        /// <summary>
         /// Limits the number of items.
         /// </summary>
         /// <param name="count">The maximum number of items to return.</param>
         /// <returns>The current context for chaining.</returns>
         IDataContext<T> Take(int count);
-
-        /// <summary>
-        /// Includes the total count of items in the query result.
-        /// </summary>
-        /// <param name="includeTotalCount">Indicates whether to include the total count of items in the query result.</param>
-        /// <returns>The current context for chaining.</returns>
-        IDataContext<T> IncludeTotalCount(bool includeTotalCount);
 
         /// <summary>
         /// Retrieves the content items asynchronously.
@@ -68,6 +68,13 @@ namespace XperienceCommunity.DataContext.Interfaces
         /// <param name="predicate">The predicate to filter items.</param>
         /// <returns>The current context for chaining.</returns>
         IDataContext<T> Where(Expression<Func<T, bool>> predicate);
+
+        /// <summary>
+        /// Retrieves the content items with specified columns asynchronously.
+        /// </summary>
+        /// <param name="columnNames">The names of the columns to retrieve.</param>
+        /// <returns>The current context for chaining.</returns>
+        IDataContext<T> WithColumns(params string[] columnNames);
 
         /// <summary>
         /// Includes linked items in the query.
