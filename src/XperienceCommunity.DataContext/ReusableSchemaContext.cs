@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using CMS.ContentEngine;
 using CMS.Helpers;
+using CMS.Websites;
 using CMS.Websites.Routing;
 using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Interfaces;
@@ -182,9 +183,14 @@ namespace XperienceCommunity.DataContext
                 {
                     keys.Add($"contentitem|byid|{contentItem.SystemFields.ContentItemID}");
                 }
+
+                if (item is IWebPageFieldsSource webPage)
+                {
+                    keys.Add($"webpageitem|byid|{webPage.SystemFields.WebPageItemID}");
+                }
             }
 
-            return keys.ToArray();
+            return [.. keys];
         }
 
         private static string[] GetCacheDependencies<T>(T data)
@@ -197,6 +203,11 @@ namespace XperienceCommunity.DataContext
             if (data is IContentItemFieldsSource item)
             {
                 return [$"contentitem|byid|{item.SystemFields.ContentItemID}"];
+            }
+
+            if (data is IWebPageFieldsSource webPage)
+            {
+                return [$"webpageitem|byid|{webPage.SystemFields.WebPageItemID}"];
             }
 
             return [];
@@ -307,7 +318,7 @@ namespace XperienceCommunity.DataContext
         /// <param name="executeFunc">The function to execute if cache is bypassed or data is not found.</param>
         /// <param name="cacheKey">The cache key.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the cached or executed data.</returns>
-        private async Task<T?> GetOrCacheAsync<T>(Func<Task<T>> executeFunc, string cacheKey) where T : class
+        private async Task<T?> GetOrCacheAsync<T>(Func<Task<T>> executeFunc, string cacheKey)
         {
             if (_websiteChannelContext.IsPreview)
             {

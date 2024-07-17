@@ -179,7 +179,7 @@ namespace XperienceCommunity.DataContext
                 }
             }
 
-            return keys.ToArray();
+            return [.. keys];
         }
 
         [return: NotNull]

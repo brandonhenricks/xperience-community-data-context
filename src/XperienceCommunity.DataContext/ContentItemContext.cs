@@ -69,7 +69,7 @@ namespace XperienceCommunity.DataContext
 
             return result?.FirstOrDefault();
         }
-        
+
         public IDataContext<T> IncludeTotalCount(bool includeTotalCount)
         {
             _includeTotalCount = includeTotalCount;
@@ -191,7 +191,7 @@ namespace XperienceCommunity.DataContext
                 }
             }
 
-            return keys.ToArray();
+            return [.. keys];
         }
 
         private static string[] GetCacheDependencies<T>(T data)
