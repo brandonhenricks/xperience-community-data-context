@@ -26,7 +26,7 @@ namespace XperienceCommunity.DataContext
         private (int?, int?) _offset;
         private IQueryable<T>? _query;
         private bool? _useFallBack;
-        private IList<string>? _columnNames;
+        private HashSet<string>? _columnNames;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContentItemContext{T}"/> class.
@@ -157,13 +157,8 @@ namespace XperienceCommunity.DataContext
 
         public IDataContext<T> WithColumns(params string[] columnNames)
         {
-            _columnNames ??= new List<string>(columnNames.Length);
-
-            foreach (var column in columnNames)
-            {
-                _columnNames.Add(column);
-            }
-
+            _columnNames ??= [..columnNames];
+             
             return this;
         }
 
