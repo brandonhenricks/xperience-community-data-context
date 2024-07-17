@@ -23,7 +23,7 @@ namespace XperienceCommunity.DataContext
         private int? _linkedItemsDepth;
         private (int?, int?) _offset;
         private PathMatch? _pathMatch;
-        private IList<string>? _columnNames;
+        private HashSet<string>? _columnNames;
         private IQueryable<T>? _query;
 
         public PageContentContext(IProgressiveCache cache, PageContentQueryExecutor<T> pageContentQueryExecutor,
@@ -156,12 +156,7 @@ namespace XperienceCommunity.DataContext
         [return: NotNull]
         public IDataContext<T> WithColumns(params string[] columnNames)
         {
-            _columnNames ??= new List<string>(columnNames.Length);
-
-            foreach (var column in columnNames)
-            {
-                _columnNames.Add(column);
-            }
+            _columnNames ??= [.. columnNames];
 
             return this;
         }
