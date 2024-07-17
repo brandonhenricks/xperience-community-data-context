@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace XperienceCommunity.DataContext
 {
-    internal class ReusableSchemaExecutor<T>
+    public sealed class ReusableSchemaExecutor<T>
     {
         private readonly ILogger<ReusableSchemaExecutor<T>> _logger;
         private readonly IContentQueryExecutor _queryExecutor;

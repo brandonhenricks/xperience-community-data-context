@@ -5,6 +5,7 @@ using CMS.Helpers;
 using CMS.Websites;
 using CMS.Websites.Routing;
 using XperienceCommunity.DataContext.Configurations;
+using XperienceCommunity.DataContext.Extensions;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext
@@ -14,17 +15,38 @@ namespace XperienceCommunity.DataContext
         private readonly IProgressiveCache _cache;
         private readonly XperienceDataContextConfig _config;
         private readonly ReusableSchemaExecutor<T> _contentQueryExecutor;
-        private readonly string _contentType;
+        private readonly string? _contentType;
         private readonly IWebsiteChannelContext _websiteChannelContext;
-        private IList<string>? _columnNames;
+        private HashSet<string>? _columnNames;
         private bool? _includeTotalCount;
         private string? _language;
         private int? _linkedItemsDepth;
         private (int?, int?) _offset;
         private IQueryable<T>? _query;
-        private IList<string>? _schemaNames;
+        private HashSet<string>? _schemaNames;
         private bool? _useFallBack;
         private bool? _withContentFields;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContentItemContext{T}"/> class.
+        /// </summary>
+        /// <param name="websiteChannelContext">The website channel context.</param>
+        /// <param name="cache">The cache service.</param>
+        /// <param name="contentQueryExecutor"></param>
+        /// <param name="config"></param>
+        public ReusableSchemaContext(IWebsiteChannelContext websiteChannelContext,
+            IProgressiveCache cache, ReusableSchemaExecutor<T> contentQueryExecutor, XperienceDataContextConfig config)
+        {
+            ArgumentNullException.ThrowIfNull(cache);
+            ArgumentNullException.ThrowIfNull(websiteChannelContext);
+            ArgumentNullException.ThrowIfNull(contentQueryExecutor);
+            _websiteChannelContext =
+                websiteChannelContext;
+            _cache = cache;
+            _contentQueryExecutor = contentQueryExecutor;
+            _config = config;
+            _contentType = typeof(T)?.GetContentTypeName() ?? null;
+        }
 
         /// <summary>
         /// Retrieves the first content item asynchronously based on the specified predicate.
@@ -43,7 +65,7 @@ namespace XperienceCommunity.DataContext
                 () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
 
-            return result.FirstOrDefault();
+            return (result ?? []).FirstOrDefault();
         }
 
         public IDataContext<T> IncludeTotalCount(bool includeTotalCount)
@@ -132,12 +154,7 @@ namespace XperienceCommunity.DataContext
 
         public IDataContext<T> WithColumns(params string[] columnNames)
         {
-            _columnNames ??= new List<string>(columnNames.Length);
-
-            foreach (var column in columnNames)
-            {
-                _columnNames.Add(column);
-            }
+            _columnNames ??= [.. columnNames];
 
             return this;
         }
@@ -163,12 +180,7 @@ namespace XperienceCommunity.DataContext
 
         public IDataContext<T> WithReusableSchemas(params string[] schemaNames)
         {
-            _schemaNames ??= new List<string>(schemaNames.Length);
-
-            foreach (var schemaName in schemaNames)
-            {
-                _schemaNames.Add(schemaName);
-            }
+            _schemaNames ??= [.. schemaNames];
 
             return this;
         }
