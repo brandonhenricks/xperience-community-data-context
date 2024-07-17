@@ -20,6 +20,7 @@ namespace XperienceCommunity.DataContext
             services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
             services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
             services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>));
+            services.AddScoped<IXperienceDataContext, XperienceDataContext>();
             services.AddScoped(typeof(ContentQueryExecutor<>));
             services.AddScoped(typeof(PageContentQueryExecutor<>));
 
@@ -44,7 +45,8 @@ namespace XperienceCommunity.DataContext
         {
             services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
             services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
-            services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>));
+            services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>)); 
+            services.AddScoped<IXperienceDataContext, XperienceDataContext>();
             services.AddScoped(typeof(ContentQueryExecutor<>));
             services.AddScoped(typeof(PageContentQueryExecutor<>));
 

@@ -3,12 +3,19 @@ using CMS.Websites;
 
 namespace XperienceCommunity.DataContext.Interfaces
 {
+    /// <summary>
+    /// Marker Interface.
+    /// </summary>
+    public interface IProcessor
+    {
+
+    }
 
     /// <summary>
     /// Represents a processor for a specific type of content.
     /// </summary>
     /// <typeparam name="T">The type of content to process.</typeparam>
-    public interface IProcessor<in T> where T : class, new()
+    public interface IProcessor<in T>: IProcessor where T : class, new()
     {
         /// <summary>
         /// Processes the specified content asynchronously.
