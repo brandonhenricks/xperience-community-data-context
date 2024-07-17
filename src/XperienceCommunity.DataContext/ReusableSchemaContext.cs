@@ -16,12 +16,12 @@ namespace XperienceCommunity.DataContext
         private readonly string _contentType;
         private readonly IWebsiteChannelContext _websiteChannelContext;
         private IList<string>? _columnNames;
-        private IList<string>? _schemaNames;
         private bool? _includeTotalCount;
         private string? _language;
         private int? _linkedItemsDepth;
         private (int?, int?) _offset;
         private IQueryable<T>? _query;
+        private IList<string>? _schemaNames;
         private bool? _useFallBack;
         private bool? _withContentFields;
 
@@ -141,6 +141,13 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
+        public IDataContext<T> WithContentTypeFields()
+        {
+            _withContentFields = true;
+
+            return this;
+        }
+
         /// <summary>
         /// Includes linked items in the query.
         /// </summary>
@@ -153,13 +160,6 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
-        public IDataContext<T> WithContentTypeFields()
-        {
-            _withContentFields = true;
-
-            return this;
-        }
-
         public IDataContext<T> WithReusableSchemas(params string[] schemaNames)
         {
             _schemaNames ??= new List<string>(schemaNames.Length);
@@ -168,6 +168,7 @@ namespace XperienceCommunity.DataContext
             {
                 _schemaNames.Add(schemaName);
             }
+
             return this;
         }
 
@@ -221,6 +222,10 @@ namespace XperienceCommunity.DataContext
                 {
                     subQuery.OfReusableSchema([.. _schemaNames]);
                 }
+                else if (!string.IsNullOrWhiteSpace(_contentType))
+                {
+                    subQuery.OfContentType(_contentType);
+                }
 
                 if (_withContentFields.HasValue)
                 {
@@ -229,10 +234,8 @@ namespace XperienceCommunity.DataContext
                         subQuery.WithContentTypeFields();
                     }
                 }
-                
             }).Parameters(paramConfig =>
             {
-
                 if (_columnNames?.Count > 0)
                 {
                     paramConfig.Columns([.. _columnNames]);
@@ -294,7 +297,7 @@ namespace XperienceCommunity.DataContext
         private string GetCacheKey(ContentItemQueryBuilder queryBuilder)
         {
             return
-                $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelID}|{_language}|{queryBuilder.GetHashCode()}";
+                $"data|{string.Join(',', _schemaNames)}|{_websiteChannelContext.WebsiteChannelID}|{_language}|{queryBuilder.GetHashCode()}";
         }
 
         /// <summary>
