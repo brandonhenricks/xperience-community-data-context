@@ -23,6 +23,7 @@ namespace XperienceCommunity.DataContext
         private (int?, int?) _offset;
         private IQueryable<T>? _query;
         private bool? _useFallBack;
+        private bool? _withContentFields;
 
         /// <summary>
         /// Retrieves the first content item asynchronously based on the specified predicate.
@@ -33,7 +34,7 @@ namespace XperienceCommunity.DataContext
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
-            var queryBuilder = BuildQuery(predicate);
+            var queryBuilder = BuildQuery(predicate, 1);
 
             var queryOptions = CreateQueryOptions();
 
@@ -152,9 +153,22 @@ namespace XperienceCommunity.DataContext
             return this;
         }
 
+        public IDataContext<T> WithContentTypeFields()
+        {
+            _withContentFields = true;
+
+            return this;
+        }
+
         public IDataContext<T> WithReusableSchemas(params string[] schemaNames)
         {
-            throw new NotImplementedException();
+            _schemaNames ??= new List<string>(schemaNames.Length);
+
+            foreach (var schemaName in schemaNames)
+            {
+                _schemaNames.Add(schemaName);
+            }
+            return this;
         }
 
         private static string[] GetCacheDependencies<T>(IEnumerable<T> data)
@@ -194,7 +208,7 @@ namespace XperienceCommunity.DataContext
         /// <param name="topN">Optional parameter to limit the number of items.</param>
         /// <returns>The constructed content item query builder.</returns>
         [return: NotNull]
-        private ContentItemQueryBuilder BuildQuery(Expression expression, int? topN)
+        private ContentItemQueryBuilder BuildQuery(Expression expression, int? topN = null)
         {
             var queryBuilder = new ContentItemQueryBuilder().ForContentTypes(subQuery =>
             {
@@ -205,16 +219,23 @@ namespace XperienceCommunity.DataContext
 
                 if (_schemaNames?.Count > 0)
                 {
-                    subQuery.OfReusableSchema(_schemaNames.ToArray());
+                    subQuery.OfReusableSchema([.. _schemaNames]);
                 }
 
+                if (_withContentFields.HasValue)
+                {
+                    if (_withContentFields.Value)
+                    {
+                        subQuery.WithContentTypeFields();
+                    }
+                }
                 
             }).Parameters(paramConfig =>
             {
 
                 if (_columnNames?.Count > 0)
                 {
-                    paramConfig.Columns(_columnNames.ToArray());
+                    paramConfig.Columns([.. _columnNames]);
                 }
 
                 if (topN.HasValue)
