@@ -53,6 +53,8 @@ namespace XperienceCommunity.DataContext
                 () => _pageContentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
 
+            _parameters.Clear();
+
             return result?.FirstOrDefault();
         }
 
@@ -128,6 +130,8 @@ namespace XperienceCommunity.DataContext
             var result = await GetOrCacheAsync(
                 () => _pageContentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
                 GetCacheKey(queryBuilder));
+
+            _parameters.Clear();
 
             return result ?? [];
         }
