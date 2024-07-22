@@ -18,6 +18,7 @@ namespace XperienceCommunity.DataContext
         private readonly IProgressiveCache _cache;
         private readonly XperienceDataContextConfig _config;
         private readonly ContentQueryExecutor<T> _contentQueryExecutor;
+        private IList<KeyValuePair<string, object?>> _parameters;
         private readonly string _contentType;
         private readonly IWebsiteChannelContext _websiteChannelContext;
         private bool? _includeTotalCount;
@@ -41,6 +42,8 @@ namespace XperienceCommunity.DataContext
             ArgumentNullException.ThrowIfNull(cache);
             ArgumentNullException.ThrowIfNull(websiteChannelContext);
             ArgumentNullException.ThrowIfNull(contentQueryExecutor);
+            ArgumentNullException.ThrowIfNull(config);
+
             _websiteChannelContext =
                 websiteChannelContext;
             _cache = cache;
@@ -48,6 +51,7 @@ namespace XperienceCommunity.DataContext
             _config = config;
             _contentType = typeof(T).GetContentTypeName() ??
                            throw new InvalidOperationException("Content type name could not be determined.");
+            _parameters = new List<KeyValuePair<string, object?>>();
         }
 
         /// <summary>
@@ -246,7 +250,10 @@ namespace XperienceCommunity.DataContext
 
                 visitor.Visit(expression);
 
+                _parameters = manager.GetQueryParameters().ToList();
+
                 // Apply conditions before returning the query parameters
+
                 manager.ApplyConditions();
             });
 
@@ -281,7 +288,7 @@ namespace XperienceCommunity.DataContext
         private string GetCacheKey(ContentItemQueryBuilder queryBuilder)
         {
             return
-                $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelID}|{_language}|{queryBuilder.GetHashCode()}";
+                $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelID}|{_language}|{queryBuilder.GetHashCode()}|{_parameters.GetHashCode()}";
         }
 
 

@@ -17,6 +17,7 @@ namespace XperienceCommunity.DataContext
         private readonly PageContentQueryExecutor<T> _pageContentQueryExecutor;
         private readonly IWebsiteChannelContext _websiteChannelContext;
         private readonly XperienceDataContextConfig _config;
+        private IList<KeyValuePair<string, object?>> _parameters;
         private string? _channelName;
         private bool? _includeTotalCount;
         private string? _language;
@@ -54,6 +55,7 @@ namespace XperienceCommunity.DataContext
 
             return result?.FirstOrDefault();
         }
+
 
         [return: NotNull]
         public IPageContentContext<T> InChannel(string channelName)
@@ -220,7 +222,7 @@ namespace XperienceCommunity.DataContext
                 {
                     subQuery.ForWebsite(channelName, _pathMatch);
                 }
-                
+
                 if (_columnNames?.Count > 0)
                 {
                     subQuery.Columns(_columnNames.ToArray());
@@ -251,6 +253,10 @@ namespace XperienceCommunity.DataContext
                 var visitor = new ContentItemQueryExpressionVisitor(manager);
 
                 visitor.Visit(expression);
+
+                _parameters = manager.GetQueryParameters().ToList();
+                // Apply conditions before returning the query parameters
+                manager.ApplyConditions();
             });
 
             if (!string.IsNullOrEmpty(_language))
@@ -281,7 +287,7 @@ namespace XperienceCommunity.DataContext
         /// <param name="queryBuilder">The query builder.</param>
         /// <returns>The generated cache key.</returns>
         [return: NotNull]
-        private string GetCacheKey(ContentItemQueryBuilder queryBuilder) => $"data|{_contentType}|{GetChannelName()}|{_language}|{queryBuilder.GetHashCode()}";
+        private string GetCacheKey(ContentItemQueryBuilder queryBuilder) => $"data|{_contentType}|{GetChannelName()}|{_language}|{queryBuilder.GetHashCode()}|{_parameters?.GetHashCode()}";
 
 
         /// <summary>

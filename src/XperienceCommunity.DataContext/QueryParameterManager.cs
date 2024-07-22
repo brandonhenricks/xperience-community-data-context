@@ -9,17 +9,27 @@ namespace XperienceCommunity.DataContext
         private readonly ContentQueryParameters? _contentQueryParameters;
         private readonly ContentTypeQueryParameters? _queryParameters;
         private readonly List<Action<WhereParameters>> _whereActions;
+        private readonly IList<KeyValuePair<string, object?>> _params;
 
         public QueryParameterManager(ContentTypeQueryParameters queryParameters)
         {
             _queryParameters = queryParameters;
             _whereActions = new List<Action<WhereParameters>>();
+            _params = new List<KeyValuePair<string, object?>>();
         }
 
         public QueryParameterManager(ContentQueryParameters contentQueryParameters)
         {
             _contentQueryParameters = contentQueryParameters;
             _whereActions = new List<Action<WhereParameters>>();
+            _params = new List<KeyValuePair<string, object?>>();
+        }
+
+        public IEnumerable<KeyValuePair<string, object>> GetQueryParameters() => _params;
+
+        private void AddParam(string key, object value)
+        {
+            _params.Add(new KeyValuePair<string, object>(key, value));
         }
 
         internal void AddComparisonCondition(string key, string comparisonOperator, object? value)
@@ -33,18 +43,22 @@ namespace XperienceCommunity.DataContext
             {
                 case ">":
                     _whereActions.Add(where => where.WhereGreater(key, value));
+                    AddParam(key, value);
                     break;
 
                 case ">=":
                     _whereActions.Add(where => where.WhereGreaterOrEquals(key, value));
+                    AddParam(key, value);
                     break;
 
                 case "<":
                     _whereActions.Add(where => where.WhereLess(key, value));
+                    AddParam(key, value);
                     break;
 
                 case "<=":
                     _whereActions.Add(where => where.WhereLessOrEquals(key, value));
+                    AddParam(key, value);
                     break;
 
                 default:
@@ -60,6 +74,7 @@ namespace XperienceCommunity.DataContext
             }
 
             _whereActions.Add(where => where.WhereEquals(key, value));
+            AddParam(key, value);
         }
 
         internal void AddLogicalCondition(string logicalOperator)
@@ -103,21 +118,22 @@ namespace XperienceCommunity.DataContext
 
             var collection = parameters[1];
 
-            if (collection is IEnumerable<int> intCollection)
+            switch (collection)
             {
-                _whereActions.Add(where => where.WhereIn(key, intCollection.ToList()));
-            }
-            else if (collection is IEnumerable<string> stringCollection)
-            {
-                _whereActions.Add(where => where.WhereIn(key, stringCollection.ToList()));
-            }
-            else if (collection is IEnumerable<Guid> guidCollection)
-            {
-                _whereActions.Add(where => where.WhereIn(key, guidCollection.ToList()));
-            }
-            else
-            {
-                throw new NotSupportedException($"Collection of type '{collection.GetType()}' is not supported.");
+                case IEnumerable<int> intCollection:
+                    _whereActions.Add(where => where.WhereIn(key, intCollection.ToList()));
+                    AddParam(key, intCollection);
+                    break;
+                case IEnumerable<string> stringCollection:
+                    _whereActions.Add(where => where.WhereIn(key, stringCollection.ToList()));
+                    AddParam(key, stringCollection);
+                    break;
+                case IEnumerable<Guid> guidCollection:
+                    _whereActions.Add(where => where.WhereIn(key, guidCollection.ToList()));
+                    AddParam(key, guidCollection);
+                    break;
+                default:
+                    throw new NotSupportedException($"Collection of type '{collection.GetType()}' is not supported.");
             }
         }
 
@@ -129,6 +145,7 @@ namespace XperienceCommunity.DataContext
             }
 
             _whereActions.Add(where => where.WhereNotEquals(key, value));
+            AddParam(key, value);
         }
 
         internal void ApplyConditions()
@@ -149,6 +166,7 @@ namespace XperienceCommunity.DataContext
                 }
             });
             // Clear the conditions after applying them
+            _params.Clear();
             _whereActions.Clear();
         }
 
