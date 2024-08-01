@@ -21,8 +21,9 @@ namespace XperienceCommunity.DataContext.Interfaces
         /// Processes the specified content asynchronously.
         /// </summary>
         /// <param name="content">The content to process.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task ProcessAsync(T content);
+        Task ProcessAsync(T content, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the order of the processor.
