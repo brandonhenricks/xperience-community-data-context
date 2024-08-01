@@ -6,27 +6,30 @@ Enhance your Kentico Xperience development with a fluent API for intuitive and e
 
 - Fluent API for query building with expressions.
 - Built in caching.
-- Built on .NET 8, ensuring modern development practices.
+- Built on .NET6/.NET 8, ensuring modern development practices.
 - Seamless integration with Xperience By Kentico.
 
 ## Quick Start
 
-1. **Prerequisites:** Ensure you have .NET 8 and Kentico Xperience installed.
-2. **Installation:** Clone this repository to get started with local development.
+1. **Prerequisites:** Ensure you have .NET 6/.NET 8 and Kentico Xperience installed.
+2. **Installation:** Install this project through Nuget.
 
 ## Prerequisites
 
 Before you begin, ensure you have met the following requirements:
 
-- **.NET 8:** Make sure you have .NET 8 installed on your development machine. You can download it from [here](https://dotnet.microsoft.com/download/dotnet/8.0).
+- **.NET:** Make sure you have a .NET 6, or .NET 8 installed on your development machine. You can download it from [here](https://dotnet.microsoft.com/download/dotnet/8.0).
 - **Xperience By Kentico Project:** You need an existing Xperience By Kentico project. If you're new to Xperience By Kentico, start [here](https://docs.xperience.io/).
 
 ## Installation
 
 To integrate XperienceCommunity.DataContext into your Kentico Xperience project, follow these steps:
 
-1. **Add the Package:**
-   - Currently, you need to clone the repository or reference the project directly, as it may not be available as a NuGet package yet.
+1. **NuGet Package**: Install the NuGet package via the Package Manager Console.
+
+   ```shell
+   Install-Package XperienceCommunity.DataContext
+   ```
 
 2. **Configure Services:**
    - In your `Startup.cs` or wherever you configure services, add the following line to register XperienceCommunity.DataContext services with dependency injection:
