@@ -119,6 +119,38 @@ public class GenericPageController: Controller
 ```
 This example demonstrates how to asynchronously retrieve the first page content item that matches a given ID, using the fluent API provided by XperienceCommunity.DataContext.
 
+### Using IXperienceDataContext Example:
+To demonstrate how to use the IXperienceDataContext interface, consider the following example:
+
+
+```csharp
+
+public class ContentService
+{
+    private readonly IXperienceDataContext _dataContext;
+
+    public ContentService(IXperienceDataContext dataContext)
+    {
+        _dataContext = dataContext;
+    }
+
+    public async Task<GenericContent> GetContentItemAsync(Guid contentItemGUID)
+    {
+        var contentItemContext = _dataContext.ForContentType<GenericContent>();
+        return await contentItemContext.FirstOrDefaultAsync(x => x.SystemFields.ContentItemGUID == contentItemGUID);
+    }
+
+    public async Task<GenericPage> GetPageContentAsync(Guid pageGUID)
+    {
+        var pageContentContext = _dataContext.ForPageContentType<GenericPage>();
+        return await pageContentContext.FirstOrDefaultAsync(x => x.SystemFields.PageGUID == pageGUID);
+    }
+}
+
+```
+In this example, the ContentService class uses the IXperienceDataContext interface to get contexts for content items and page content. This setup allows you to leverage the fluent API provided by IContentItemContext and IPageContentContext to interact with content items and page content in a type-safe manner.
+
+
 ## Built With
 
 * [Xperience By Kentico](https://www.kentico.com) - Kentico Xperience
