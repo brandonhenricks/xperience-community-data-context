@@ -26,6 +26,8 @@ namespace XperienceCommunity.DataContext
         public async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
             ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 var results = await _queryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
@@ -40,6 +42,8 @@ namespace XperienceCommunity.DataContext
                 {
                     foreach (var processor in _processors.OrderBy(x=> x.Order))
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         await processor.ProcessAsync(result, cancellationToken);
                     }
                 }

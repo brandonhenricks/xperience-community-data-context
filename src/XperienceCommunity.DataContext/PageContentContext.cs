@@ -45,6 +45,8 @@ namespace XperienceCommunity.DataContext
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var queryBuilder = BuildQuery(predicate, topN: 1);
 
             var queryOptions = CreateQueryOptions();
@@ -121,6 +123,8 @@ namespace XperienceCommunity.DataContext
         [return: NotNull]
         public async Task<IEnumerable<T>> ToListAsync(CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             ValidateQuery();
 
             var queryBuilder = BuildQuery(_query?.Expression!);
