@@ -29,6 +29,8 @@ namespace XperienceCommunity.DataContext
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var results = await _queryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
                     cancellationToken: cancellationToken);
 
@@ -41,6 +43,8 @@ namespace XperienceCommunity.DataContext
                 {
                     foreach (var processor in _processors.OrderBy(x => x.Order))
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         await processor.ProcessAsync(result, cancellationToken);
                     }
                 }

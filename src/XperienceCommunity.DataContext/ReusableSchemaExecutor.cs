@@ -23,6 +23,8 @@ namespace XperienceCommunity.DataContext
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var results = await _queryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
                     cancellationToken: cancellationToken);
 
