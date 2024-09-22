@@ -40,7 +40,7 @@ namespace XperienceCommunity.DataContext
                 {
                     foreach (var processor in _processors.OrderBy(x=> x.Order))
                     {
-                        await processor.ProcessAsync(result);
+                        await processor.ProcessAsync(result, cancellationToken);
                     }
                 }
 
