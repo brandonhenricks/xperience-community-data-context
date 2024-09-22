@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using CMS.ContentEngine;
 using CMS.Websites;
 using Microsoft.Extensions.Logging;
@@ -22,6 +23,7 @@ namespace XperienceCommunity.DataContext
             _processors = processors?.ToImmutableList();
         }
 
+        [return: NotNull]
         public async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
             ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
@@ -39,11 +41,11 @@ namespace XperienceCommunity.DataContext
                 {
                     foreach (var processor in _processors.OrderBy(x => x.Order))
                     {
-                        await processor.ProcessAsync(result);
+                        await processor.ProcessAsync(result, cancellationToken);
                     }
                 }
 
-                return results;
+                return results ?? [];
             }
             catch (Exception ex)
             {
