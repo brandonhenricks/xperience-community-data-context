@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using CMS.ContentEngine;
 using XperienceCommunity.DataContext.Extensions;
 
@@ -25,11 +26,15 @@ namespace XperienceCommunity.DataContext
             _params = new List<KeyValuePair<string, object?>>();
         }
 
-        public IEnumerable<KeyValuePair<string, object>> GetQueryParameters() => _params;
+        [return: NotNull]
+        public IEnumerable<KeyValuePair<string, object>> GetQueryParameters() => _params!;
 
         private void AddParam(string key, object value)
         {
-            _params.Add(new KeyValuePair<string, object>(key, value));
+            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullException.ThrowIfNull(value);
+
+            _params.Add(new KeyValuePair<string, object>(key, value)!);
         }
 
         internal void AddComparisonCondition(string key, string comparisonOperator, object? value)
@@ -145,6 +150,7 @@ namespace XperienceCommunity.DataContext
             }
 
             _whereActions.Add(where => where.WhereNotEquals(key, value));
+
             AddParam(key, value);
         }
 
@@ -274,12 +280,12 @@ namespace XperienceCommunity.DataContext
 
         internal void AddWhereInCondition(string key, object?[] collection)
         {
-            if (collection == null || collection.Length == 0)
+            if (collection?.Length == 0)
             {
                 return;
             }
 
-            var elementType = collection[0]?.GetType();
+            var elementType = collection![0]!.GetType();
 
             if (elementType == typeof(int))
             {

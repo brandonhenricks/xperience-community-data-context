@@ -9,12 +9,30 @@ namespace XperienceCommunity.DataContext.Interfaces
     public interface IDataContext<T>
     {
         /// <summary>
+        /// Retrieves a single item that matches the specified predicate asynchronously or returns the default value if no such item is found.
+        /// </summary>
+        /// <param name="predicate">The predicate used to filter the items.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the single item that matches the predicate or the default value if no such item is found.</returns>
+        Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Retrieves the first or default item that matches the specified predicate asynchronously.
         /// </summary>
         /// <param name="predicate">The predicate used to filter the items.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the first or default item that matches the predicate.</returns>
         Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves the last or default item that matches the specified predicate asynchronously.
+        /// </summary>
+        /// <param name="predicate">The predicate used to filter the items.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the last or default item that matches the predicate.</returns>
+        Task<T?> LastOrDefaultAsync(Expression<Func<T, bool>> predicate,
             CancellationToken cancellationToken = default);
 
         /// <summary>

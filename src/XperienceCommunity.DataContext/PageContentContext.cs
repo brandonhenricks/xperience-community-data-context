@@ -42,6 +42,24 @@ namespace XperienceCommunity.DataContext
             _config = config;
         }
 
+        public async Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var queryBuilder = BuildQuery(predicate, topN: 1);
+
+            var queryOptions = CreateQueryOptions();
+
+            var result = await GetOrCacheAsync(
+                () => _pageContentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+                GetCacheKey(queryBuilder));
+
+            _parameters.Clear();
+
+            return result?.SingleOrDefault();
+        }
+
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
             CancellationToken cancellationToken = default)
         {
@@ -58,6 +76,24 @@ namespace XperienceCommunity.DataContext
             _parameters.Clear();
 
             return result?.FirstOrDefault();
+        }
+
+        public async Task<T?> LastOrDefaultAsync(Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var queryBuilder = BuildQuery(predicate);
+
+            var queryOptions = CreateQueryOptions();
+
+            var result = await GetOrCacheAsync(
+                () => _pageContentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+                GetCacheKey(queryBuilder));
+
+            _parameters.Clear();
+
+            return result?.LastOrDefault();
         }
 
 
@@ -223,7 +259,6 @@ namespace XperienceCommunity.DataContext
             {
                 if (_pathMatch is null)
                 {
-
                     subQuery.ForWebsite(channelName);
                 }
                 else
@@ -295,7 +330,8 @@ namespace XperienceCommunity.DataContext
         /// <param name="queryBuilder">The query builder.</param>
         /// <returns>The generated cache key.</returns>
         [return: NotNull]
-        private string GetCacheKey(ContentItemQueryBuilder queryBuilder) => $"data|{_contentType}|{GetChannelName()}|{_language}|{queryBuilder.GetHashCode()}|{_parameters?.GetHashCode()}";
+        private string GetCacheKey(ContentItemQueryBuilder queryBuilder) =>
+            $"data|{_contentType}|{GetChannelName()}|{_language}|{queryBuilder.GetHashCode()}|{_parameters?.GetHashCode()}";
 
 
         /// <summary>
