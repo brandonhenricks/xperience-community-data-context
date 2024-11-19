@@ -48,6 +48,22 @@ namespace XperienceCommunity.DataContext
             _contentType = typeof(T)?.GetContentTypeName() ?? null;
         }
 
+        public async Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var queryBuilder = BuildQuery(predicate, 1);
+
+            var queryOptions = CreateQueryOptions();
+
+            var result = await GetOrCacheAsync(
+                () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+                GetCacheKey(queryBuilder));
+
+            return (result ?? []).SingleOrDefault();
+        }
+
         /// <summary>
         /// Retrieves the first content item asynchronously based on the specified predicate.
         /// </summary>
@@ -68,6 +84,22 @@ namespace XperienceCommunity.DataContext
                 GetCacheKey(queryBuilder));
 
             return (result ?? []).FirstOrDefault();
+        }
+
+        public async Task<T?> LastOrDefaultAsync(Expression<Func<T, bool>> predicate,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var queryBuilder = BuildQuery(predicate);
+
+            var queryOptions = CreateQueryOptions();
+
+            var result = await GetOrCacheAsync(
+                () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+                GetCacheKey(queryBuilder));
+
+            return (result ?? []).LastOrDefault();
         }
 
         public IDataContext<T> IncludeTotalCount(bool includeTotalCount)

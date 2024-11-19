@@ -54,6 +54,23 @@ namespace XperienceCommunity.DataContext
             _parameters = new List<KeyValuePair<string, object?>>();
         }
 
+        public async Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var queryBuilder = BuildQuery(predicate, topN: 1);
+
+            var queryOptions = CreateQueryOptions();
+
+            var result = await GetOrCacheAsync(
+                () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+                GetCacheKey(queryBuilder));
+
+            _parameters.Clear();
+
+            return result?.SingleOrDefault();
+        }
+
         /// <summary>
         /// Retrieves the first content item asynchronously based on the specified predicate.
         /// </summary>
@@ -76,6 +93,23 @@ namespace XperienceCommunity.DataContext
             _parameters.Clear();
 
             return result?.FirstOrDefault();
+        }
+
+        public async Task<T?> LastOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var queryBuilder = BuildQuery(predicate);
+
+            var queryOptions = CreateQueryOptions();
+
+            var result = await GetOrCacheAsync(
+                () => _contentQueryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
+                GetCacheKey(queryBuilder));
+
+            _parameters.Clear();
+
+            return result?.LastOrDefault();
         }
 
         public IDataContext<T> IncludeTotalCount(bool includeTotalCount)
@@ -150,7 +184,7 @@ namespace XperienceCommunity.DataContext
 
             _parameters.Clear();
 
-            return results ?? [];
+            return results ?? Array.Empty<T>();
         }
 
         /// <summary>
@@ -169,8 +203,8 @@ namespace XperienceCommunity.DataContext
 
         public IDataContext<T> WithColumns(params string[] columnNames)
         {
-            _columnNames ??= [..columnNames];
-             
+            _columnNames ??= [.. columnNames];
+
             return this;
         }
 
