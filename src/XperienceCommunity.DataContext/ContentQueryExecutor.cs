@@ -6,31 +6,28 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext
 {
-    public sealed class ContentQueryExecutor<T> where T : class, IContentItemFieldsSource, new()
+    public sealed class ContentQueryExecutor<T> : BaseContentQueryExecutor<T> where T : class, IContentItemFieldsSource, new()
     {
         private readonly ILogger<ContentQueryExecutor<T>> _logger;
         private readonly ImmutableList<IContentItemProcessor<T>>? _processors;
-        private readonly IContentQueryExecutor _queryExecutor;
 
         public ContentQueryExecutor(ILogger<ContentQueryExecutor<T>> logger, IContentQueryExecutor queryExecutor,
-            IEnumerable<IContentItemProcessor<T>>? processors)
+            IEnumerable<IContentItemProcessor<T>>? processors) : base(queryExecutor)
         {
             ArgumentNullException.ThrowIfNull(logger);
-            ArgumentNullException.ThrowIfNull(queryExecutor);
             _logger = logger;
-            _queryExecutor = queryExecutor;
             _processors = processors?.ToImmutableList();
         }
 
         [return: NotNull]
-        public async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
+        public override async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
             ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                var results = await _queryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
+                var results = await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
                     cancellationToken: cancellationToken);
 
                 if (_processors == null)
@@ -40,7 +37,7 @@ namespace XperienceCommunity.DataContext
 
                 foreach (var result in results)
                 {
-                    foreach (var processor in _processors.OrderBy(x=> x.Order))
+                    foreach (var processor in _processors.OrderBy(x => x.Order))
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 

@@ -4,28 +4,25 @@ using Microsoft.Extensions.Logging;
 
 namespace XperienceCommunity.DataContext
 {
-    public sealed class ReusableSchemaExecutor<T>
+    public sealed class ReusableSchemaExecutor<T> : BaseContentQueryExecutor<T>
     {
         private readonly ILogger<ReusableSchemaExecutor<T>> _logger;
-        private readonly IContentQueryExecutor _queryExecutor;
 
-        public ReusableSchemaExecutor(ILogger<ReusableSchemaExecutor<T>> logger, IContentQueryExecutor queryExecutor)
+        public ReusableSchemaExecutor(ILogger<ReusableSchemaExecutor<T>> logger, IContentQueryExecutor queryExecutor) : base(queryExecutor)
         {
             ArgumentNullException.ThrowIfNull(logger);
-            ArgumentNullException.ThrowIfNull(queryExecutor);
             _logger = logger;
-            _queryExecutor = queryExecutor;
         }
 
         [return: NotNull]
-        public async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
+        public override async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
             ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var results = await _queryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
+                var results = await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
                     cancellationToken: cancellationToken);
 
                 return results ?? [];
