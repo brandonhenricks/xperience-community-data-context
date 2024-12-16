@@ -7,31 +7,29 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext
 {
-    public sealed class PageContentQueryExecutor<T> where T : class, IWebPageFieldsSource, new()
+    public sealed class PageContentQueryExecutor<T> : BaseContentQueryExecutor<T> where T : class, IWebPageFieldsSource, new()
     {
         private readonly ILogger<PageContentQueryExecutor<T>> _logger;
         private readonly ImmutableList<IPageContentProcessor<T>>? _processors;
-        private readonly IContentQueryExecutor _queryExecutor;
 
         public PageContentQueryExecutor(ILogger<PageContentQueryExecutor<T>> logger,
-            IContentQueryExecutor queryExecutor, IEnumerable<IPageContentProcessor<T>>? processors)
+            IContentQueryExecutor queryExecutor, IEnumerable<IPageContentProcessor<T>>? processors) : base(queryExecutor)
         {
             ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(queryExecutor);
             _logger = logger;
-            _queryExecutor = queryExecutor;
             _processors = processors?.ToImmutableList();
         }
 
         [return: NotNull]
-        public async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
+        public override async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
             ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var results = await _queryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
+                var results = await QueryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
                     cancellationToken: cancellationToken);
 
                 if (_processors == null)
