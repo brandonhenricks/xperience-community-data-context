@@ -12,7 +12,7 @@
     <Title>$(Product)</Title>
     <PackageProjectUrl>https://github.com/brandonhenricks/xperience-community-data-context</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>xperience;kentico;mvc;aspnetcore;health</PackageTags>
+    <PackageTags>xperience-by-kentico;kentico;content-querying;query-builder;data-access;fluent-api</PackageTags>
     <PackageReleaseNotes>https://github.com/brandonhenricks/xperience-community-data-context/releases</PackageReleaseNotes>
   </PropertyGroup>
 
