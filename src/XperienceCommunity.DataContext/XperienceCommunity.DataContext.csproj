@@ -10,7 +10,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/brandonhenricks/xperience-community-data-context</RepositoryUrl>
     <Authors>Brandon Henricks</Authors>
-    <Description>Fluent API for query building using expressions for content retrieval in Xperience By Kentico projects.</Description>
+    <Description>Enhance Kentico Xperience development efforts with a fluent, intuitive API designed for efficient content querying. XperienceCommunity.DataContext simplifies the process of building queries against Kentico’s ContentItemQueryBuilder by abstracting its complexity behind a fluent, strongly-typed interface. Built on .NET 8 and fully integrated with Xperience by Kentico, this library improves productivity during local development and testing, allowing teams to streamline content management operations and accelerate project delivery.</Description>
     <IncludeSymbols>True</IncludeSymbols>
     <AnalysisLevel>latest</AnalysisLevel>
   </PropertyGroup>
