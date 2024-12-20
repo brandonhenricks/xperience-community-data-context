@@ -25,13 +25,13 @@ namespace XperienceCommunity.DataContext
 
         public IPageContentContext<T> InChannel(string channelName)
         {
-            // Implement InChannel logic here
+            ChannelName = channelName;
             return this;
         }
 
         public IPageContentContext<T> OnPath(PathMatch pathMatch)
         {
-            // Implement OnPath logic here
+            PathMatch = pathMatch;
             return this;
         }
     }

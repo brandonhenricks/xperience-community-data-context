@@ -180,6 +180,15 @@ namespace XperienceCommunity.DataContext
         {
             var queryBuilder = new ContentItemQueryBuilder().ForContentType(ContentType, subQuery =>
             {
+                if (PathMatch is null)
+                {
+                    subQuery.ForWebsite(ChannelName);
+                }
+                else
+                {
+                    subQuery.ForWebsite(ChannelName, PathMatch);
+                }
+
                 if (LinkedItemsDepth.HasValue)
                 {
                     subQuery.WithLinkedItems(LinkedItemsDepth.Value);
