@@ -1,29 +1,29 @@
 ﻿using System.Linq.Expressions;
 using CMS.ContentEngine;
+using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Builders
 {
-    public sealed class ContentQueryBuilder<T> : IExpressionQueryBuilder<T> where T : class, new()
+    public sealed class ContentQueryBuilder : IExpressionQueryBuilder
     {
-        private readonly string _contentType;
         private readonly HashSet<string>? _columnNames;
-        private readonly int? _linkedItemsDepth;
+        private readonly string _contentType;
         private readonly bool? _includeTotalCount;
-        private readonly (int?, int?) _offset;
         private readonly string? _language;
+        private readonly int? _linkedItemsDepth;
+        private readonly (int?, int?) _offset;
         private readonly bool? _useFallBack;
 
-        public ContentQueryBuilder(string contentType, HashSet<string>? columnNames, int? linkedItemsDepth,
-            bool? includeTotalCount, (int?, int?) offset, string? language, bool? useFallBack)
+        public ContentQueryBuilder(QueryConfig config)
         {
-            _contentType = contentType;
-            _columnNames = columnNames;
-            _linkedItemsDepth = linkedItemsDepth;
-            _includeTotalCount = includeTotalCount;
-            _offset = offset;
-            _language = language;
-            _useFallBack = useFallBack;
+            _contentType = config.ContentType;
+            _columnNames = config.ColumnNames;
+            _linkedItemsDepth = config.LinkedItemsDepth;
+            _includeTotalCount = config.IncludeTotalCount;
+            _offset = config.Offset;
+            _language = config.Language;
+            _useFallBack = config.UseFallBack;
         }
 
         public string Type => "Content";

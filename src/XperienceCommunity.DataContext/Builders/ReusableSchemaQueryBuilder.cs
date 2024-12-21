@@ -1,32 +1,33 @@
 ﻿using System.Linq.Expressions;
 using CMS.ContentEngine;
+using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Builders
 {
-    public class ReusableSchemaQueryBuilder<T> : IExpressionQueryBuilder<T> where T : class, new()
+    public class ReusableSchemaQueryBuilder : IExpressionQueryBuilder
     {
-        private readonly string? _contentType;
         private readonly HashSet<string>? _columnNames;
-        private readonly int? _linkedItemsDepth;
+        private readonly string? _contentType;
         private readonly bool? _includeTotalCount;
-        private readonly (int?, int?) _offset;
         private readonly string? _language;
-        private readonly bool? _useFallBack;
+        private readonly int? _linkedItemsDepth;
+        private readonly (int?, int?) _offset;
         private readonly HashSet<string>? _schemaNames;
+        private readonly bool? _useFallBack;
         private readonly bool? _withContentFields;
 
-        public ReusableSchemaQueryBuilder(string? contentType, HashSet<string>? columnNames, int? linkedItemsDepth, bool? includeTotalCount, (int?, int?) offset, string? language, bool? useFallBack, HashSet<string>? schemaNames, bool? withContentFields)
+        public ReusableSchemaQueryBuilder(ReusableSchemaConfig config)
         {
-            _contentType = contentType;
-            _columnNames = columnNames;
-            _linkedItemsDepth = linkedItemsDepth;
-            _includeTotalCount = includeTotalCount;
-            _offset = offset;
-            _language = language;
-            _useFallBack = useFallBack;
-            _schemaNames = schemaNames;
-            _withContentFields = withContentFields;
+            _contentType = config.ContentType;
+            _columnNames = config.ColumnNames;
+            _linkedItemsDepth = config.LinkedItemsDepth;
+            _includeTotalCount = config.IncludeTotalCount;
+            _offset = config.Offset;
+            _language = config.Language;
+            _useFallBack = config.UseFallBack;
+            _schemaNames = config.SchemaNames;
+            _withContentFields = config.WithContentFields;
         }
 
         public string Type => "ReusableSchema";

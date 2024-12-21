@@ -6,9 +6,11 @@ namespace XperienceCommunity.DataContext.Interfaces
     /// <summary>
     /// Defines a method to build a query from an expression.
     /// </summary>
-    /// <typeparam name="T">The type of the entity.</typeparam>
-    public interface IExpressionQueryBuilder<T>
+    public interface IExpressionQueryBuilder
     {
+        /// <summary>
+        /// Gets the type of the builder.
+        /// </summary>
         string Type { get; }
 
         /// <summary>

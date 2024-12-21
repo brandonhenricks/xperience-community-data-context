@@ -1,11 +1,12 @@
 ﻿using System.Linq.Expressions;
 using CMS.ContentEngine;
 using CMS.Websites;
+using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Builders
 {
-    public class PageQueryBuilder<T> : IExpressionQueryBuilder<T> where T : class, new()
+    public class PageQueryBuilder : IExpressionQueryBuilder
     {
         private readonly string _contentType;
         private readonly HashSet<string>? _columnNames;
@@ -17,17 +18,17 @@ namespace XperienceCommunity.DataContext.Builders
         private readonly PathMatch? _pathMatch;
         private readonly string? _channelName;
 
-        public PageQueryBuilder(string contentType, HashSet<string>? columnNames, int? linkedItemsDepth, bool? includeTotalCount, (int?, int?) offset, string? language, bool? useFallBack, PathMatch? pathMatch, string? channelName)
+        public PageQueryBuilder(PageQueryConfig config)
         {
-            _contentType = contentType;
-            _columnNames = columnNames;
-            _linkedItemsDepth = linkedItemsDepth;
-            _includeTotalCount = includeTotalCount;
-            _offset = offset;
-            _language = language;
-            _useFallBack = useFallBack;
-            _pathMatch = pathMatch;
-            _channelName = channelName;
+            _contentType = config.ContentType;
+            _columnNames = config.ColumnNames;
+            _linkedItemsDepth = config.LinkedItemsDepth;
+            _includeTotalCount = config.IncludeTotalCount;
+            _offset = config.Offset;
+            _language = config.Language;
+            _useFallBack = config.UseFallBack;
+            _pathMatch = config.PathMatch;
+            _channelName = config.ChannelName;
         }
 
         public string Type => "Page";
