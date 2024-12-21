@@ -5,7 +5,7 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Builders
 {
-    public class ReusableSchemaQueryBuilder : IExpressionQueryBuilder
+    public sealed class ReusableSchemaQueryBuilder : IExpressionQueryBuilder
     {
         private readonly HashSet<string>? _columnNames;
         private readonly string? _contentType;

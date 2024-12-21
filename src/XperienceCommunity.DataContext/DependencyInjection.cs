@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using XperienceCommunity.DataContext.Builders;
 using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Interfaces;
 
@@ -9,6 +10,27 @@ namespace XperienceCommunity.DataContext
     /// </summary>
     public static class DependencyInjection
     {
+        private static void AddContext(this IServiceCollection services)
+        {
+            services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
+            services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
+            services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>));
+            services.AddScoped<IXperienceDataContext, XperienceDataContext>();
+        }
+
+        private static void AddQueryExecutors(this IServiceCollection services)
+        {
+            services.AddScoped(typeof(ContentQueryExecutor<>));
+            services.AddScoped(typeof(PageContentQueryExecutor<>));
+        }
+
+        private static void AddQueryBuilders(this IServiceCollection services)
+        {
+            services.AddScoped<IExpressionQueryBuilder, ContentQueryBuilder>();
+            services.AddScoped<IExpressionQueryBuilder, PageQueryBuilder>();
+            services.AddScoped<IExpressionQueryBuilder, ReusableSchemaQueryBuilder>();
+        }
+
         /// <summary>
         /// Adds the XperienceDataContext services to the specified <see cref="IServiceCollection"/>.
         /// </summary>
@@ -17,12 +39,9 @@ namespace XperienceCommunity.DataContext
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
         public static IServiceCollection AddXperienceDataContext(this IServiceCollection services, int? cacheInMinutes)
         {
-            services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
-            services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
-            services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>));
-            services.AddScoped<IXperienceDataContext, XperienceDataContext>();
-            services.AddScoped(typeof(ContentQueryExecutor<>));
-            services.AddScoped(typeof(PageContentQueryExecutor<>));
+            services.AddContext();
+            services.AddQueryExecutors();
+            services.AddQueryBuilders();
 
             var config = new XperienceDataContextConfig();
 
@@ -43,12 +62,9 @@ namespace XperienceCommunity.DataContext
         /// <returns>The modified <see cref="XperienceContextBuilder"/>.</returns>
         public static XperienceContextBuilder AddXperienceDataContext(this IServiceCollection services)
         {
-            services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
-            services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
-            services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>)); 
-            services.AddScoped<IXperienceDataContext, XperienceDataContext>();
-            services.AddScoped(typeof(ContentQueryExecutor<>));
-            services.AddScoped(typeof(PageContentQueryExecutor<>));
+            services.AddContext();
+            services.AddQueryExecutors();
+            services.AddQueryBuilders();
 
             return new XperienceContextBuilder(services);
         }
