@@ -7,14 +7,13 @@
 - Optimize code for readability, maintainability, and performance.
 - Azure Functions should target the latest Azure Function tooling, and target .NET 8.
 - Follow **SOLID** principles and clean architecture patterns.
-
-# Team Best Practices
 - Prefer full method bodies over inline lambdas in C#.
 - Prefer async and await over synchronous code. [Async Guidance](https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md)
 - Prefer var over explicit types.
 - Employ dependency injection using the built-in DI container.
 - Handle exceptions gracefully and use `Microsoft.Extensions.Logging` for logging.
 - Follow HttpClient Best Guidance [HttpClient Guidance](https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/HttpClientGuidance.md)
+- Utilize Xperience by Kentico API for database interactions if applicable.
 
 ## Testing Guidelnes
 - Use the AAA paattern (Arrange, Act, Assert)
@@ -26,8 +25,3 @@
 - Prefer helper methods for setup and teardown.
 - Avoid multiple acts in a single test.
 - Write unit tests using **xUnit** and aim for high code coverage.
-
-## Project-specific instructions
-
-- Utilize **ASP.NET Core** for building web applications and APIs.[ASP.NET Core Guidance](https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AspNetCoreGuidance.md)
-- Utilize Xperience by Kentico API for database interactions if applicable.
