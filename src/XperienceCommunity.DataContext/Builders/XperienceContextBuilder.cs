@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Interfaces;
 
-namespace XperienceCommunity.DataContext;
+namespace XperienceCommunity.DataContext.Builders;
 
 /// <summary>
 /// Builder class for configuring XperienceDataContext.
