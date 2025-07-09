@@ -3,8 +3,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Kentico.Xperience.Core" Version="[29.1.4,)" />
-    <PackageVersion Include="CSharpFunctionalExtensions" Version="2.41.0" />
+    <PackageVersion Include="Kentico.Xperience.Core" Version="[30.3.1,)" />
+    <PackageVersion Include="CSharpFunctionalExtensions" Version="3.6.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
