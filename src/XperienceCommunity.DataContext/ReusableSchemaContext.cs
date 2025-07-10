@@ -28,7 +28,7 @@ public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchema
     public ReusableSchemaContext(IWebsiteChannelContext websiteChannelContext,
         IProgressiveCache cache, ReusableSchemaExecutor<T> reusableSchemaExecutor, XperienceDataContextConfig config)
         : base(websiteChannelContext, cache, reusableSchemaExecutor, config,
-              typeof(T).GetContentTypeName() ?? throw new InvalidOperationException("Content type name could not be determined."))
+              typeof(T).GetReusableFieldSchemaName() ?? throw new InvalidOperationException("Content type name could not be determined."))
     {
     }
 
