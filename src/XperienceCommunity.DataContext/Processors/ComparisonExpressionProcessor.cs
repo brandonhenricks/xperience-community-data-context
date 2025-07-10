@@ -5,11 +5,11 @@ namespace XperienceCommunity.DataContext.Processors;
 
 internal sealed class ComparisonExpressionProcessor : IExpressionProcessor<BinaryExpression>
 {
-    private readonly ExpressionContext _context;
+    private readonly IExpressionContext _context;
     private readonly bool _isGreaterThan;
     private readonly bool _isEqual;
 
-    public ComparisonExpressionProcessor(ExpressionContext context, bool isGreaterThan, bool isEqual = false)
+    public ComparisonExpressionProcessor(IExpressionContext context, bool isGreaterThan, bool isEqual = false)
     {
         _context = context;
         _isGreaterThan = isGreaterThan;

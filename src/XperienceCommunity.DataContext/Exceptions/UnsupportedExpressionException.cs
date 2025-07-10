@@ -11,7 +11,7 @@ public sealed class UnsupportedExpressionException : ExpressionProcessingExcepti
     /// Initializes a new instance of the <see cref="UnsupportedExpressionException"/> class.
     /// </summary>
     /// <param name="expressionType">The unsupported expression type.</param>
-    public UnsupportedExpressionException(Type expressionType) 
+    public UnsupportedExpressionException(Type expressionType)
         : base($"The expression type '{expressionType.Name}' is not supported.")
     {
     }
@@ -21,7 +21,7 @@ public sealed class UnsupportedExpressionException : ExpressionProcessingExcepti
     /// </summary>
     /// <param name="expressionType">The unsupported expression type.</param>
     /// <param name="expression">The expression that caused the error.</param>
-    public UnsupportedExpressionException(ExpressionType expressionType, Expression expression) 
+    public UnsupportedExpressionException(ExpressionType expressionType, Expression expression)
         : base($"The expression type '{expressionType}' is not supported.", expression)
     {
     }
@@ -31,7 +31,7 @@ public sealed class UnsupportedExpressionException : ExpressionProcessingExcepti
     /// </summary>
     /// <param name="methodName">The unsupported method name.</param>
     /// <param name="expression">The expression that caused the error.</param>
-    public UnsupportedExpressionException(string methodName, Expression expression) 
+    public UnsupportedExpressionException(string methodName, Expression expression)
         : base($"The method '{methodName}' is not supported.", expression)
     {
     }

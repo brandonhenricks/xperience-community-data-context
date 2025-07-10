@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Interfaces;
 using XperienceCommunity.DataContext.Processors;
 
@@ -6,12 +7,10 @@ namespace XperienceCommunity.DataContext;
 
 internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
 {
-    private readonly ExpressionContext _context;
+    private readonly IExpressionContext _context;
 
     private readonly Dictionary<ExpressionType, IExpressionProcessor<BinaryExpression>> _binaryExpressionProcessors;
     private readonly Dictionary<Type, IExpressionProcessor> _expressionProcessors;
-    private string? _currentMemberName;
-    private object? _currentValue;
 
     public ContentItemQueryExpressionVisitor(ExpressionContext context)
     {
@@ -42,7 +41,8 @@ internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
         {
             return processor;
         }
-        throw new NotSupportedException($"The expression type '{expressionType}' is not supported.");
+
+        throw new UnsupportedExpressionException(expressionType);
     }
 
     protected override Expression VisitBinary(BinaryExpression node)
@@ -53,7 +53,7 @@ internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
             return node;
         }
 
-        throw new NotSupportedException($"The binary expression type '{node.NodeType}' is not supported.");
+        throw new UnsupportedExpressionException(node.NodeType, node);
     }
 
     protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -80,13 +80,11 @@ internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
 
     protected override Expression VisitMember(MemberExpression node)
     {
-        _currentMemberName = node.Member.Name;
         return base.VisitMember(node);
     }
 
     protected override Expression VisitConstant(ConstantExpression node)
     {
-        _currentValue = node.Value;
         return base.VisitConstant(node);
     }
 }

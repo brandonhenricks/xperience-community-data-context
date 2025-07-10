@@ -5,10 +5,10 @@ namespace XperienceCommunity.DataContext.Processors;
 
 internal sealed class LogicalExpressionProcessor : IExpressionProcessor<BinaryExpression>
 {
-    private readonly ExpressionContext _context;
+    private readonly IExpressionContext _context;
     private readonly bool _isAnd;
 
-    public LogicalExpressionProcessor(ExpressionContext context, bool isAnd)
+    public LogicalExpressionProcessor(IExpressionContext context, bool isAnd)
     {
         _context = context;
         _isAnd = isAnd;

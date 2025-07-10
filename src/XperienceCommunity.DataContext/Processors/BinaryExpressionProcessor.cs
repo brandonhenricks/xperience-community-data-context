@@ -1,13 +1,14 @@
 ﻿using System.Linq.Expressions;
+using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors;
 
 internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExpression>
 {
-    private readonly ExpressionContext _context;
+    private readonly IExpressionContext _context;
 
-    public BinaryExpressionProcessor(ExpressionContext context)
+    public BinaryExpressionProcessor(IExpressionContext context)
     {
         _context = context;
     }
@@ -57,7 +58,7 @@ internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExp
                 break;
 
             default:
-                throw new NotSupportedException($"The binary expression type '{node.NodeType}' is not supported.");
+                throw new UnsupportedExpressionException(node.NodeType, node);
         }
     }
 
@@ -106,7 +107,7 @@ internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExp
         }
         else
         {
-            throw new InvalidOperationException("Invalid expression format for equality comparison.");
+            throw new InvalidExpressionFormatException("Invalid expression format for equality comparison.");
         }
     }
 
@@ -135,7 +136,7 @@ internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExp
         }
         else
         {
-            throw new InvalidOperationException("Invalid expression format for comparison.");
+            throw new InvalidExpressionFormatException("Invalid expression format for comparison.");
         }
     }
 

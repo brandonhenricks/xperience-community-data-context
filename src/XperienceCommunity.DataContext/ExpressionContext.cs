@@ -1,4 +1,5 @@
 ﻿using CMS.ContentEngine;
+using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext;
 
@@ -7,7 +8,7 @@ namespace XperienceCommunity.DataContext;
 /// Tracks parameter names/values, member/property access chains, logical groupings, and intermediate query fragments.
 /// Extensible for future LINQ features and Kentico API changes.
 /// </summary>
-public sealed class ExpressionContext
+public sealed class ExpressionContext: IExpressionContext
 {
     private readonly Dictionary<string, object?> _parameters = new();
     private readonly Stack<string> _memberAccessChain = new();
