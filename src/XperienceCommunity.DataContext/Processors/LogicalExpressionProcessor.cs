@@ -10,6 +10,8 @@ internal sealed class LogicalExpressionProcessor : IExpressionProcessor<BinaryEx
 
     public LogicalExpressionProcessor(IExpressionContext context, bool isAnd)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         _context = context;
         _isAnd = isAnd;
     }

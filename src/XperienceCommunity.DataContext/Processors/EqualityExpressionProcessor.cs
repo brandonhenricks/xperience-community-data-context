@@ -11,6 +11,8 @@ internal sealed class EqualityExpressionProcessor : IExpressionProcessor<BinaryE
 
     public EqualityExpressionProcessor(IExpressionContext context, bool isEqual = true)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         _context = context;
         _isEqual = isEqual;
     }

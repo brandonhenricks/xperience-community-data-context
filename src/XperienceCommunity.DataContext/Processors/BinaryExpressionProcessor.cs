@@ -10,6 +10,8 @@ internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExp
 
     public BinaryExpressionProcessor(IExpressionContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         _context = context;
     }
 

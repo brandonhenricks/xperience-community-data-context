@@ -11,6 +11,8 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
 
     public MethodCallExpressionProcessor(IExpressionContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         _context = context;
     }
 

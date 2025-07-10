@@ -11,6 +11,8 @@ internal sealed class ComparisonExpressionProcessor : IExpressionProcessor<Binar
 
     public ComparisonExpressionProcessor(IExpressionContext context, bool isGreaterThan, bool isEqual = false)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         _context = context;
         _isGreaterThan = isGreaterThan;
         _isEqual = isEqual;

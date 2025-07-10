@@ -10,6 +10,8 @@ internal sealed class UnaryExpressionProcessor: IExpressionProcessor<UnaryExpres
 
     public UnaryExpressionProcessor(IExpressionContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+
         _context = context;
     }
 
