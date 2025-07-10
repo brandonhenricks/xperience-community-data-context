@@ -7,6 +7,7 @@ namespace XperienceCommunity.DataContext.Interfaces
     /// </summary>
     internal interface IExpressionProcessor
     {
+        bool CanProcess(Expression node);
     }
 
     internal interface IExpressionProcessor<in T> : IExpressionProcessor where T : Expression
