@@ -82,5 +82,20 @@ namespace XperienceCommunity.DataContext.Processors
                 _parameterManager.AddNotEqualsCondition(leftMember.Member.Name, rightValue);
             }
         }
+
+        public bool CanProcess(Expression node)
+        {
+            // Align logic with Process: only BinaryExpressions with supported left/right types
+            if (node is BinaryExpression binary)
+            {
+                return
+                    (binary.Left is MemberExpression && binary.Right is ConstantExpression) ||
+                    (binary.Left is ConstantExpression && binary.Right is MemberExpression) ||
+                    (binary.Left is MemberExpression && binary.Right is UnaryExpression) ||
+                    (binary.Left is UnaryExpression && binary.Right is MemberExpression) ||
+                    (binary.Left is MemberExpression && binary.Right is MemberExpression);
+            }
+            return false;
+        }
     }
 }
