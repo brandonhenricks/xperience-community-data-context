@@ -84,7 +84,7 @@ public class ContentItemQueryExpressionVisitorTests
         var inner = Expression.Equal(Expression.Constant(1), Expression.Constant(1));
         var expr = Expression.Not(inner);
 
-        Assert.Throws<InvalidOperationException>(() => visitor.Visit(expr));
+        Assert.Throws<InvalidExpressionFormatException>(() => visitor.Visit(expr));
     }
 
     [Fact]

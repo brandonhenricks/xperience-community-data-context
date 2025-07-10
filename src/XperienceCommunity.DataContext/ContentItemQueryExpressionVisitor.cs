@@ -24,8 +24,8 @@ internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
             { ExpressionType.GreaterThanOrEqual, new ComparisonExpressionProcessor(_context, isGreaterThan: true, isEqual: true) },
             { ExpressionType.LessThan, new ComparisonExpressionProcessor(_context, isGreaterThan: false) },
             { ExpressionType.LessThanOrEqual, new ComparisonExpressionProcessor(_context, isGreaterThan: false, isEqual: true) },
-            { ExpressionType.AndAlso, new LogicalExpressionProcessor(_context, isAnd: true) },
-            { ExpressionType.OrElse, new LogicalExpressionProcessor(_context, isAnd: false) }
+            { ExpressionType.AndAlso, new LogicalExpressionProcessor(_context, isAnd: true, Visit) },
+            { ExpressionType.OrElse, new LogicalExpressionProcessor(_context, isAnd: false, Visit) }
         };
 
         _expressionProcessors = new Dictionary<Type, IExpressionProcessor>
