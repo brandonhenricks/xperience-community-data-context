@@ -1,5 +1,6 @@
 ﻿using CMS.ContentEngine;
 using NSubstitute;
+using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Interfaces;
 using Xunit;
 
@@ -134,7 +135,7 @@ public class BinaryExpressionProcessorTests
         var right = System.Linq.Expressions.Expression.Constant(2);
         var expr = System.Linq.Expressions.Expression.MakeBinary(System.Linq.Expressions.ExpressionType.Equal, left, right);
 
-        Assert.Throws<System.InvalidOperationException>(() =>
+        Assert.Throws<InvalidExpressionFormatException>(() =>
             processor.Process((System.Linq.Expressions.BinaryExpression)expr));
     }
 
