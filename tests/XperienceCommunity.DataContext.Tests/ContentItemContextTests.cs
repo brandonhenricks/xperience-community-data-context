@@ -5,9 +5,10 @@ using CMS.ContentEngine;
 using CMS.Helpers;
 using CMS.Websites.Routing;
 using NSubstitute;
-using XperienceCommunity.DataContext;
+using XperienceCommunity.DataContext.Abstractions.Processors;
 using XperienceCommunity.DataContext.Configurations;
-using XperienceCommunity.DataContext.Interfaces;
+using XperienceCommunity.DataContext.Contexts;
+using XperienceCommunity.DataContext.Executors;
 using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests

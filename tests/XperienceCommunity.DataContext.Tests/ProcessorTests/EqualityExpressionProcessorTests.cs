@@ -1,7 +1,9 @@
 ﻿using System.Linq.Expressions;
 using CMS.ContentEngine;
 using NSubstitute;
-using XperienceCommunity.DataContext.Interfaces;
+using XperienceCommunity.DataContext.Abstractions;
+using XperienceCommunity.DataContext.Exceptions;
+using XperienceCommunity.DataContext.Expressions.Processors;
 using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
@@ -13,7 +15,7 @@ public class EqualityExpressionProcessorTests
     {
         var context = Substitute.For<IExpressionContext>();
 
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         Assert.NotNull(processor);
     }
@@ -21,7 +23,7 @@ public class EqualityExpressionProcessorTests
     public void Process_MemberEqualsConstant_AddsParameterAndWhereEquals()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         var member = Expression.Property(Expression.Parameter(typeof(string), "x"), "Length");
         var constant = Expression.Constant(5);
@@ -37,7 +39,7 @@ public class EqualityExpressionProcessorTests
     public void Process_ConstantEqualsMember_AddsParameterAndWhereEquals()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         var member = Expression.Property(Expression.Parameter(typeof(string), "x"), "Length");
         var constant = Expression.Constant(5);
@@ -53,7 +55,7 @@ public class EqualityExpressionProcessorTests
     public void Process_MemberEqualsUnaryConstant_AddsParameterAndWhereEquals()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         var member = Expression.Property(Expression.Parameter(typeof(string), "x"), "Length");
         var constant = Expression.Constant(5);
@@ -70,7 +72,7 @@ public class EqualityExpressionProcessorTests
     public void Process_UnaryConstantEqualsMember_AddsParameterAndWhereEquals()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         var member = Expression.Property(Expression.Parameter(typeof(string), "x"), "Length");
         var constant = Expression.Constant(5);
@@ -87,7 +89,7 @@ public class EqualityExpressionProcessorTests
     public void Process_MemberEqualsMember_AddsParameterAndWhereEquals()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         var param = Expression.Constant("hello");
         var leftMember = Expression.Property(param, "Length");
@@ -104,7 +106,7 @@ public class EqualityExpressionProcessorTests
     public void Process_ConstantEqualsConstant_AddsWhereEqualsWithResult()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         var left = Expression.Constant(5);
         var right = Expression.Constant(5);
@@ -119,13 +121,13 @@ public class EqualityExpressionProcessorTests
     public void Process_InvalidExpression_ThrowsInvalidExpressionFormatException()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         var left = Expression.Parameter(typeof(int), "x");
         var right = Expression.Parameter(typeof(int), "y");
         var binary = Expression.Add(left, right);
 
-        Assert.Throws<XperienceCommunity.DataContext.Exceptions.InvalidExpressionFormatException>(() =>
+        Assert.Throws<InvalidExpressionFormatException>(() =>
             processor.Process((BinaryExpression)binary));
     }
 
@@ -140,7 +142,7 @@ public class EqualityExpressionProcessorTests
     public void CanProcess_ReturnsExpectedResult(Type leftType, Type rightType, bool expected)
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.EqualityExpressionProcessor(context);
+        var processor = new EqualityExpressionProcessor(context);
 
         Expression left = leftType switch
         {

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using Xunit;
-using XperienceCommunity.DataContext;
-using CMS.ContentEngine;
+﻿using CMS.ContentEngine;
+using XperienceCommunity.DataContext.Contexts;
 
 namespace XperienceCommunity.DataContext.Tests;
 

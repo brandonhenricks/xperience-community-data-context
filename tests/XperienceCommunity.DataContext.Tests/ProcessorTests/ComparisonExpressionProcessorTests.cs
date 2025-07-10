@@ -1,7 +1,8 @@
 ﻿using System.Linq.Expressions;
 using CMS.ContentEngine;
 using NSubstitute;
-using XperienceCommunity.DataContext.Interfaces;
+using XperienceCommunity.DataContext.Abstractions;
+using XperienceCommunity.DataContext.Expressions.Processors;
 using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
@@ -12,7 +13,7 @@ public class ComparisonExpressionProcessorTests
     public void Constructor_ShouldInstantiate()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.ComparisonExpressionProcessor(context, true, false);
+        var processor = new ComparisonExpressionProcessor(context, true, false);
         Assert.NotNull(processor);
     }
 
@@ -20,7 +21,7 @@ public class ComparisonExpressionProcessorTests
     public void CanProcess_ReturnsTrue_WhenMemberAndConstant()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.ComparisonExpressionProcessor(context, true, false);
+        var processor = new ComparisonExpressionProcessor(context, true, false);
 
         var member = Expression.Property(Expression.Parameter(typeof(TestClass), "x"), nameof(TestClass.Value));
         var constant = Expression.Constant(5);
@@ -33,7 +34,7 @@ public class ComparisonExpressionProcessorTests
     public void CanProcess_ReturnsFalse_WhenNotMemberAndConstant()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.ComparisonExpressionProcessor(context, true, false);
+        var processor = new ComparisonExpressionProcessor(context, true, false);
 
         var left = Expression.Constant(1);
         var right = Expression.Constant(2);
@@ -46,7 +47,7 @@ public class ComparisonExpressionProcessorTests
     public void Process_Throws_WhenNoMemberOrConstant()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.ComparisonExpressionProcessor(context, true, false);
+        var processor = new ComparisonExpressionProcessor(context, true, false);
 
         var left = Expression.Parameter(typeof(TestClass), "x");
         var right = Expression.Parameter(typeof(TestClass), "y");

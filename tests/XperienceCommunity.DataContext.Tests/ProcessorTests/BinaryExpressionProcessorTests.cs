@@ -1,7 +1,8 @@
 ﻿using CMS.ContentEngine;
 using NSubstitute;
+using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Exceptions;
-using XperienceCommunity.DataContext.Interfaces;
+using XperienceCommunity.DataContext.Expressions.Processors;
 using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
@@ -13,7 +14,7 @@ public class BinaryExpressionProcessorTests
     {
         var context = Substitute.For<IExpressionContext>();
 
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
 
         Assert.NotNull(processor);
     }
@@ -21,7 +22,7 @@ public class BinaryExpressionProcessorTests
     public void CanProcess_ShouldReturnTrue_ForBinaryExpression()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
         var expr = System.Linq.Expressions.Expression.Equal(
             System.Linq.Expressions.Expression.Constant(1),
             System.Linq.Expressions.Expression.Constant(1)
@@ -36,7 +37,7 @@ public class BinaryExpressionProcessorTests
     public void CanProcess_ShouldReturnFalse_ForNonBinaryExpression()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
         var expr = System.Linq.Expressions.Expression.Constant(1);
 
         var result = processor.CanProcess(expr);
@@ -50,7 +51,7 @@ public class BinaryExpressionProcessorTests
     public void Process_ShouldHandle_EqualityExpressions(System.Linq.Expressions.ExpressionType nodeType, bool isEqual)
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
 
         var member = System.Linq.Expressions.Expression.Property(
             System.Linq.Expressions.Expression.Parameter(typeof(TestClass), "x"),
@@ -74,7 +75,7 @@ public class BinaryExpressionProcessorTests
     public void Process_ShouldHandle_ComparisonExpressions(System.Linq.Expressions.ExpressionType nodeType, bool isGreaterThan, bool isEqual)
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
 
         var member = System.Linq.Expressions.Expression.Property(
             System.Linq.Expressions.Expression.Parameter(typeof(TestClass), "x"),
@@ -98,7 +99,7 @@ public class BinaryExpressionProcessorTests
     public void Process_ShouldHandle_LogicalExpressions(System.Linq.Expressions.ExpressionType nodeType, bool isAnd)
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
 
         var left = System.Linq.Expressions.Expression.Constant(true);
         var right = System.Linq.Expressions.Expression.Constant(false);
@@ -115,7 +116,7 @@ public class BinaryExpressionProcessorTests
     public void Process_ShouldThrow_ForUnsupportedExpressionType()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
 
         var left = System.Linq.Expressions.Expression.Constant(1);
         var right = System.Linq.Expressions.Expression.Constant(2);
@@ -129,7 +130,7 @@ public class BinaryExpressionProcessorTests
     public void ProcessEquality_ShouldThrow_ForConstantToConstant()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
 
         var left = System.Linq.Expressions.Expression.Constant(1);
         var right = System.Linq.Expressions.Expression.Constant(2);
@@ -143,7 +144,7 @@ public class BinaryExpressionProcessorTests
     public void ProcessEquality_ShouldThrow_ForInvalidFormat()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
 
         var left = System.Linq.Expressions.Expression.Parameter(typeof(TestClass), "x");
         var right = System.Linq.Expressions.Expression.Parameter(typeof(TestClass), "y");
@@ -157,7 +158,7 @@ public class BinaryExpressionProcessorTests
     public void ProcessComparison_ShouldThrow_ForInvalidFormat()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.BinaryExpressionProcessor(context);
+        var processor = new BinaryExpressionProcessor(context);
 
         var left = System.Linq.Expressions.Expression.Parameter(typeof(TestClass), "x");
         var right = System.Linq.Expressions.Expression.Parameter(typeof(TestClass), "y");
