@@ -90,7 +90,7 @@ internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExp
                 : !Equals(leftConst.Value, rightConst.Value);
             // Optionally: store or use 'result' as needed
             // For most data contexts, you might ignore or throw
-            throw new InvalidOperationException("Cannot process constant-to-constant equality in a data context.");
+            throw new InvalidExpressionFormatException("Cannot process constant-to-constant equality in a data context.");
         }
         if (member != null && constant != null)
         {
