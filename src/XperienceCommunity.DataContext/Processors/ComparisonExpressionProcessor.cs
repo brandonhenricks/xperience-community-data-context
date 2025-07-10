@@ -16,6 +16,16 @@ namespace XperienceCommunity.DataContext.Processors
             _isEqual = isEqual;
         }
 
+        public bool CanProcess(Expression node)
+        {
+            if (node is BinaryExpression binaryNode)
+            {
+                return binaryNode.Left is MemberExpression && binaryNode.Right is ConstantExpression;
+            }
+
+            return false;
+        }
+
         public void Process(BinaryExpression node)
         {
             if (node is { Left: MemberExpression member, Right: ConstantExpression constant })

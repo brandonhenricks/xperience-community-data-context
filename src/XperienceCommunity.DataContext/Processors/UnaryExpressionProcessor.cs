@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors
@@ -26,7 +27,7 @@ namespace XperienceCommunity.DataContext.Processors
                     ProcessQuote(node);
                     break;
                 default:
-                    throw new NotSupportedException($"The unary expression type '{node.NodeType}' is not supported.");
+                    throw new UnsupportedExpressionException(node.NodeType, node);
             }
         }
         private void ProcessNot(UnaryExpression node)
@@ -65,6 +66,14 @@ namespace XperienceCommunity.DataContext.Processors
         {
             var visitor = new ContentItemQueryExpressionVisitor(_parameterManager);
             visitor.Visit(node);
+        }
+
+        public bool CanProcess(Expression node)
+        {
+            return node is UnaryExpression unaryExpression &&
+                   (unaryExpression.NodeType == ExpressionType.Not ||
+                    unaryExpression.NodeType == ExpressionType.Convert ||
+                    unaryExpression.NodeType == ExpressionType.Quote);
         }
     }
 }

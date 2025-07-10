@@ -19,33 +19,43 @@ namespace XperienceCommunity.DataContext.Processors
                 case ExpressionType.Equal:
                     ProcessEquality(node, isEqual: true);
                     break;
+
                 case ExpressionType.NotEqual:
                     ProcessEquality(node, isEqual: false);
                     break;
+
                 case ExpressionType.GreaterThan:
                     ProcessComparison(node, isGreaterThan: true);
                     break;
+
                 case ExpressionType.GreaterThanOrEqual:
                     ProcessComparison(node, isGreaterThan: true, isEqual: true);
                     break;
+
                 case ExpressionType.LessThan:
                     ProcessComparison(node, isGreaterThan: false);
                     break;
+
                 case ExpressionType.LessThanOrEqual:
                     ProcessComparison(node, isGreaterThan: false, isEqual: true);
                     break;
+
                 case ExpressionType.AndAlso:
                     ProcessLogical(node, isAnd: true);
                     break;
+
                 case ExpressionType.OrElse:
                     ProcessLogical(node, isAnd: false);
                     break;
+
                 case ExpressionType.And:
                     ProcessLogical(node, true);
                     break;
+
                 case ExpressionType.Or:
                     ProcessLogical(node, false);
                     break;
+
                 default:
                     throw new NotSupportedException($"The binary expression type '{node.NodeType}' is not supported.");
             }
@@ -93,6 +103,11 @@ namespace XperienceCommunity.DataContext.Processors
             var logicalOperator = isAnd ? "AND" : "OR";
 
             _parameterManager.AddLogicalCondition(logicalOperator);
+        }
+
+        public bool CanProcess(Expression node)
+        {
+            return node is BinaryExpression;
         }
     }
 }

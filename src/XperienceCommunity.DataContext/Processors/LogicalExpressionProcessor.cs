@@ -14,6 +14,13 @@ namespace XperienceCommunity.DataContext.Processors
             _isAnd = isAnd;
         }
 
+        public bool CanProcess(Expression node)
+        {
+            return node is BinaryExpression binaryExpression &&
+                   (binaryExpression.NodeType == ExpressionType.AndAlso || binaryExpression.NodeType == ExpressionType.OrElse) &&
+                   (binaryExpression.Left is MemberExpression || binaryExpression.Right is MemberExpression);
+        }
+
         public void Process(BinaryExpression node)
         {
 

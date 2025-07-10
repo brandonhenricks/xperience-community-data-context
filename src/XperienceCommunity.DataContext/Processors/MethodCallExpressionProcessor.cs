@@ -12,6 +12,14 @@ namespace XperienceCommunity.DataContext.Processors
             _parameterManager = parameterManager;
         }
 
+        public bool CanProcess(Expression node)
+        {
+            return node is MethodCallExpression methodCallExpression &&
+                   (methodCallExpression.Method.DeclaringType == typeof(string) ||
+                    methodCallExpression.Method.DeclaringType == typeof(Enumerable) ||
+                    methodCallExpression.Method.DeclaringType == typeof(Queryable));
+        }
+
         public void Process(MethodCallExpression node)
         {
             if (node.Method.DeclaringType == typeof(string))
