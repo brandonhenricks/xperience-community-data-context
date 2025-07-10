@@ -100,8 +100,14 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
         {
             // Handle case where the object is a constant (e.g., "Hello".StartsWith("He"))
             var paramName = constantObj.Value?.ToString();
-            _context.AddParameter(paramName, constantArg.Value);
-            _context.AddWhereAction(w => w.WhereStartsWith(paramName, constantArg.Value?.ToString()));
+
+            if (!string.IsNullOrEmpty(paramName))
+            {
+                paramName = $"p_{Guid.NewGuid():N}";
+
+                _context.AddParameter(paramName, constantArg.Value);
+                _context.AddWhereAction(w => w.WhereStartsWith(paramName, constantArg.Value?.ToString()));
+            }
         }
         else
         {
