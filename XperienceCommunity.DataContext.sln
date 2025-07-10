@@ -5,6 +5,8 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XperienceCommunity.DataContext", "src\XperienceCommunity.DataContext\XperienceCommunity.DataContext.csproj", "{14744EBF-59D5-4810-BD67-85C946F21140}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XperienceCommunity.DataContext.Tests", "tests\XperienceCommunity.DataContext.Tests\XperienceCommunity.DataContext.Tests.csproj", "{8CED78E2-592E-499C-953B-EF0F701BFDD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{14744EBF-59D5-4810-BD67-85C946F21140}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14744EBF-59D5-4810-BD67-85C946F21140}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14744EBF-59D5-4810-BD67-85C946F21140}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CED78E2-592E-499C-953B-EF0F701BFDD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CED78E2-592E-499C-953B-EF0F701BFDD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CED78E2-592E-499C-953B-EF0F701BFDD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CED78E2-592E-499C-953B-EF0F701BFDD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
