@@ -1,7 +1,8 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using CMS.ContentEngine;
 using NSubstitute;
-using XperienceCommunity.DataContext.Interfaces;
+using XperienceCommunity.DataContext.Abstractions;
+using XperienceCommunity.DataContext.Expressions.Processors;
 using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
@@ -17,23 +18,23 @@ public class LogicalExpressionProcessorIntegrationTests
         // Arrange
         var context = Substitute.For<IExpressionContext>();
         var visitCallCount = 0;
-        
+
         Expression visitFunction(Expression expr)
         {
             visitCallCount++;
             return expr;
         }
 
-        var processor = new Processors.LogicalExpressionProcessor(context, true, visitFunction);
+        var processor = new LogicalExpressionProcessor(context, true, visitFunction);
 
         // Create a complex expression: (x.Name == "test") && (x.Age > 18)
         var param = Expression.Parameter(typeof(TestClass), "x");
         var nameProperty = Expression.Property(param, nameof(TestClass.Name));
         var ageProperty = Expression.Property(param, nameof(TestClass.Age));
-        
+
         var nameComparison = Expression.Equal(nameProperty, Expression.Constant("test"));
         var ageComparison = Expression.GreaterThan(ageProperty, Expression.Constant(18));
-        
+
         var complexExpression = Expression.AndAlso(nameComparison, ageComparison);
 
         // Act
@@ -51,21 +52,21 @@ public class LogicalExpressionProcessorIntegrationTests
         // Arrange
         var context = Substitute.For<IExpressionContext>();
         var visitCallCount = 0;
-        
+
         Expression visitFunction(Expression expr)
         {
             visitCallCount++;
             return expr;
         }
 
-        var processor = new Processors.LogicalExpressionProcessor(context, false, visitFunction);
+        var processor = new LogicalExpressionProcessor(context, false, visitFunction);
 
         // Create nested expression: (x.IsActive && x.IsVerified) || x.IsAdmin
         var param = Expression.Parameter(typeof(TestClass), "x");
         var isActiveProperty = Expression.Property(param, nameof(TestClass.IsActive));
         var isVerifiedProperty = Expression.Property(param, nameof(TestClass.IsVerified));
         var isAdminProperty = Expression.Property(param, nameof(TestClass.IsAdmin));
-        
+
         var nestedAnd = Expression.AndAlso(isActiveProperty, isVerifiedProperty);
         var outerOr = Expression.OrElse(nestedAnd, isAdminProperty);
 
@@ -84,7 +85,7 @@ public class LogicalExpressionProcessorIntegrationTests
     {
         // Arrange
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.LogicalExpressionProcessor(context, true);
+        var processor = new LogicalExpressionProcessor(context, true);
 
         // Create expression: false && x.IsActive (should optimize to always false)
         var falseConstant = Expression.Constant(false);
@@ -105,7 +106,7 @@ public class LogicalExpressionProcessorIntegrationTests
     {
         // Arrange
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.LogicalExpressionProcessor(context, false);
+        var processor = new LogicalExpressionProcessor(context, false);
 
         // Create expression: true || x.IsActive (should optimize to always true)
         var trueConstant = Expression.Constant(true);
@@ -127,7 +128,7 @@ public class LogicalExpressionProcessorIntegrationTests
         // Arrange
         var context = Substitute.For<IExpressionContext>();
         var visitCallCount = 0;
-        
+
         Expression visitFunction(Expression expr)
         {
             visitCallCount++;
@@ -135,7 +136,7 @@ public class LogicalExpressionProcessorIntegrationTests
             return expr;
         }
 
-        var processor = new Processors.LogicalExpressionProcessor(context, true, visitFunction);
+        var processor = new LogicalExpressionProcessor(context, true, visitFunction);
 
         // Create expression: x.IsActive && x.Name.Contains("test")
         var param = Expression.Parameter(typeof(TestClass), "x");
@@ -143,7 +144,7 @@ public class LogicalExpressionProcessorIntegrationTests
         var nameProperty = Expression.Property(param, nameof(TestClass.Name));
         var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
         var containsCall = Expression.Call(nameProperty, containsMethod, Expression.Constant("test"));
-        
+
         var mixedExpression = Expression.AndAlso(isActiveProperty, containsCall);
 
         // Act

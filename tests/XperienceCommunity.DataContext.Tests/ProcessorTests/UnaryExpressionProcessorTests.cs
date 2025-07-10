@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
-using XperienceCommunity.DataContext.Interfaces;
+using XperienceCommunity.DataContext.Abstractions;
+using XperienceCommunity.DataContext.Expressions.Processors;
 using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
@@ -11,7 +12,7 @@ public class UnaryExpressionProcessorTests
     {
         var context = Substitute.For<IExpressionContext>();
 
-        var processor = new Processors.UnaryExpressionProcessor(context);
+        var processor = new UnaryExpressionProcessor(context);
 
         Assert.NotNull(processor);
     }

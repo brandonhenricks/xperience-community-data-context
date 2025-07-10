@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
-using XperienceCommunity.DataContext.Interfaces;
+using XperienceCommunity.DataContext.Abstractions;
+using XperienceCommunity.DataContext.Expressions.Processors;
 using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
@@ -10,7 +11,7 @@ public class MethodCallExpressionProcessorTests
     public void Constructor_ShouldInstantiate()
     {
         var context = Substitute.For<IExpressionContext>();
-        var processor = new Processors.MethodCallExpressionProcessor(context);
+        var processor = new MethodCallExpressionProcessor(context);
         Assert.NotNull(processor);
     }
 }

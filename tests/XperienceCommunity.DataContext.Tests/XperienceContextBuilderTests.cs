@@ -2,8 +2,8 @@
 using CMS.Websites;
 using Microsoft.Extensions.DependencyInjection;
 using XperienceCommunity.DataContext;
+using XperienceCommunity.DataContext.Abstractions.Processors;
 using XperienceCommunity.DataContext.Configurations;
-using XperienceCommunity.DataContext.Interfaces;
 using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests;
