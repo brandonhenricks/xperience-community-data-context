@@ -1,6 +1,6 @@
 # XperienceCommunity.DataContext
 
-Enhance your Kentico Xperience development with a fluent API for intuitive and efficient query building. This project abstracts the built-in ContentItemQueryBuilder, leveraging .NET 8 and integrated with Xperience By Kentico, to improve your local development and testing workflow.
+Enhance your Kentico Xperience development with a fluent API for intuitive and efficient query building. This project abstracts the built-in ContentItemQueryBuilder, leveraging .NET 6/.NET 8/.NET 9 and integrated with Xperience By Kentico, to improve your local development and testing workflow.
 
 ## Features
 
@@ -20,7 +20,7 @@ Enhance your Kentico Xperience development with a fluent API for intuitive and e
 ## Quick Start
 
 1. **Prerequisites:** Ensure you have .NET 8/.NET 9 and Kentico Xperience installed.
-2. **Installation:** Install this project through Nuget.
+2. **Installation:** Install this project through NuGet.
 
 ## Architecture Overview
 
@@ -57,27 +57,46 @@ XperienceCommunity.DataContext provides three specialized contexts for different
 
 Before you begin, ensure you have met the following requirements:
 
-- **.NET:** Make sure you have a .NET 8, or .NET 9 installed on your development machine. You can download it from [the official .NET download page](https://dotnet.microsoft.com/download/dotnet/8.0).
+- **.NET:** Make sure you have .NET 8, or .NET 9 installed on your development machine. You can download it from [the official .NET download page](https://dotnet.microsoft.com/download/dotnet).
 - **Xperience By Kentico Project:** You need an existing Xperience By Kentico project. If you're new to Xperience By Kentico, start with [the official documentation](https://docs.xperience.io/).
 
 ## Installation
 
 To integrate XperienceCommunity.DataContext into your Kentico Xperience project, follow these steps:
 
-1. **NuGet Package**: Install the NuGet package via the Package Manager Console.
+1. **NuGet Package**: Install the NuGet package via the Package Manager Console:
 
    ```shell
    Install-Package XperienceCommunity.DataContext
    ```
 
+   Or via the .NET CLI:
+
+   ```shell
+   dotnet add package XperienceCommunity.DataContext
+   ```
+
+   Or add it directly to your `.csproj` file:
+
+   ```xml
+   <PackageReference Include="XperienceCommunity.DataContext" Version="[latest-version]" />
+   ```
+
 2. **Configure Services:**
-   - In your `Startup.cs` or wherever you configure services, add the following line to register XperienceCommunity.DataContext services with dependency injection:
+   - In your `Program.cs` or `Startup.cs` file, add the following line to register XperienceCommunity.DataContext services with dependency injection:
 
 ```csharp
+// In Program.cs (minimal hosting model)
+builder.Services.AddXperienceDataContext();
+
+// Or in Startup.cs
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddXperienceDataContext();
 }
+
+// Optional: Configure cache timeout
+services.AddXperienceDataContext(cacheInMinutes: 30);
 ```
 
 ## Injecting the `IContentItemContext` into a Class
@@ -99,7 +118,7 @@ public class MyService
     }
 
     // Example method using the _contentItemContext
-    public async Task<GenericContent> GetContentItemAsync(Guid contentItemGUID)
+    public async Task<GenericContent?> GetContentItemAsync(Guid contentItemGUID)
     {
         return await _contentItemContext
             .FirstOrDefaultAsync(x => x.SystemFields.ContentItemGUID == contentItemGUID);
@@ -126,13 +145,14 @@ This example demonstrates how to asynchronously retrieve the first content item 
 Assuming you have a `GenericPage` class that implements `IWebPageFieldsSource`, you can inject the `IPageContentContext<GenericPage>` into your classes as follows:
 
 ```csharp
-public class GenericPageController: Controller
+public class GenericPageController : Controller
 {
     private readonly IPageContentContext<GenericPage> _pageContext;
     private readonly IWebPageDataContextRetriever _webPageDataContextRetriever;
 
-    public GenericPageController(IPageContentContext<GenericPage> pageContext
-            IWebPageDataContextRetriever webPageDataContextRetriever)
+    public GenericPageController(
+        IPageContentContext<GenericPage> pageContext,
+        IWebPageDataContextRetriever webPageDataContextRetriever)
     {
         _pageContext = pageContext;
         _webPageDataContextRetriever = webPageDataContextRetriever;
@@ -141,7 +161,7 @@ public class GenericPageController: Controller
     // Example method using the _pageContext
     public async Task<IActionResult> IndexAsync()
     {           
-         var page = _webPageDataContextRetriever.Retrieve().WebPage;
+        var page = _webPageDataContextRetriever.Retrieve().WebPage;
 
         if (page == null)
         {
@@ -156,7 +176,7 @@ public class GenericPageController: Controller
             return NotFound();
         }
 
-        return View(conent);
+        return View(content);
     }
 }
 ```
@@ -168,7 +188,6 @@ This example demonstrates how to asynchronously retrieve the first page content 
 To demonstrate how to use the IXperienceDataContext interface, consider the following example:
 
 ```csharp
-
 public class ContentService
 {
     private readonly IXperienceDataContext _dataContext;
@@ -178,19 +197,18 @@ public class ContentService
         _dataContext = dataContext;
     }
 
-    public async Task<GenericContent> GetContentItemAsync(Guid contentItemGUID)
+    public async Task<GenericContent?> GetContentItemAsync(Guid contentItemGUID)
     {
         var contentItemContext = _dataContext.ForContentType<GenericContent>();
         return await contentItemContext.FirstOrDefaultAsync(x => x.SystemFields.ContentItemGUID == contentItemGUID);
     }
 
-    public async Task<GenericPage> GetPageContentAsync(Guid pageGUID)
+    public async Task<GenericPage?> GetPageContentAsync(Guid pageGUID)
     {
         var pageContentContext = _dataContext.ForPageContentType<GenericPage>();
-        return await pageContentContext.FirstOrDefaultAsync(x => x.SystemFields.PageGUID == pageGUID);
+        return await pageContentContext.FirstOrDefaultAsync(x => x.SystemFields.WebPageItemGUID == pageGUID);
     }
 }
-
 ```
 
 In this example, the ContentService class uses the IXperienceDataContext interface to get contexts for content items and page content. This setup allows you to leverage the fluent API provided by IContentItemContext and IPageContentContext to interact with content items and page content in a type-safe manner.
@@ -271,14 +289,14 @@ public class ContentManagementService
         _dataContext = dataContext;
     }
 
-    public async Task<T> GetContentByIdAsync<T>(int id) where T : class, IContentItemFieldSource
+    public async Task<T?> GetContentByIdAsync<T>(int id) where T : class, IContentItemFieldSource
     {
         return await _dataContext
             .ForContentType<T>()
             .FirstOrDefaultAsync(x => x.SystemFields.ContentItemID == id);
     }
 
-    public async Task<T> GetPageByPathAsync<T>(string path) where T : class, IWebPageFieldsSource
+    public async Task<T?> GetPageByPathAsync<T>(string path) where T : class, IWebPageFieldsSource
     {
         return await _dataContext
             .ForPageContentType<T>()
@@ -370,6 +388,7 @@ services.AddXperienceDataContext(); // Call after registering processors
 - Use cancellation tokens for long-running operations
 
 #### 5. Testing with Contexts
+
 **Recommendation**: Use `IXperienceDataContext` for easier mocking in unit tests:
 
 ```csharp
@@ -402,7 +421,7 @@ This design reduces code duplication by 70%+ while maintaining type safety and f
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/brandonhenricks/xperience-community-data-context/tags).
 
 ## Authors
 
@@ -410,7 +429,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
 
