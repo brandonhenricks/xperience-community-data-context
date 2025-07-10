@@ -1,57 +1,34 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext
 {
-    public sealed class ContentQueryExecutor<T> : BaseContentQueryExecutor<T> where T : class, IContentItemFieldsSource, new()
+    /// <summary>
+    /// Executor for content item queries.
+    /// </summary>
+    /// <typeparam name="T">The type of content item.</typeparam>
+    public sealed class ContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IContentItemProcessor<T>> 
+        where T : class, IContentItemFieldsSource, new()
     {
-        private readonly ILogger<ContentQueryExecutor<T>> _logger;
-        private readonly ImmutableList<IContentItemProcessor<T>>? _processors;
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContentQueryExecutor{T}"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="queryExecutor">The query executor.</param>
+        /// <param name="processors">The processors.</param>
         public ContentQueryExecutor(ILogger<ContentQueryExecutor<T>> logger, IContentQueryExecutor queryExecutor,
-            IEnumerable<IContentItemProcessor<T>>? processors) : base(queryExecutor)
+            IEnumerable<IContentItemProcessor<T>>? processors) : base(logger, queryExecutor, processors)
         {
-            ArgumentNullException.ThrowIfNull(logger);
-            _logger = logger;
-            _processors = processors?.ToImmutableList();
         }
 
+        /// <inheritdoc />
         [return: NotNull]
-        public override async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
+        protected override async Task<IEnumerable<T>> ExecuteQueryInternalAsync(ContentItemQueryBuilder queryBuilder,
             ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            try
-            {
-                var results = await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
-                    cancellationToken: cancellationToken);
-
-                if (_processors == null)
-                {
-                    return results ?? [];
-                }
-
-                foreach (var result in results)
-                {
-                    foreach (var processor in _processors.OrderBy(x => x.Order))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        await processor.ProcessAsync(result, cancellationToken);
-                    }
-                }
-
-                return results ?? [];
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return [];
-            }
+            return await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken);
         }
     }
 }

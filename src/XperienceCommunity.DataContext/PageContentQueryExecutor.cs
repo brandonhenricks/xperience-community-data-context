@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using CMS.ContentEngine;
 using CMS.Websites;
 using Microsoft.Extensions.Logging;
@@ -7,53 +6,32 @@ using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext
 {
-    public sealed class PageContentQueryExecutor<T> : BaseContentQueryExecutor<T> where T : class, IWebPageFieldsSource, new()
+    /// <summary>
+    /// Executor for page content queries.
+    /// </summary>
+    /// <typeparam name="T">The type of page content.</typeparam>
+    public sealed class PageContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IPageContentProcessor<T>> 
+        where T : class, IWebPageFieldsSource, new()
     {
-        private readonly ILogger<PageContentQueryExecutor<T>> _logger;
-        private readonly ImmutableList<IPageContentProcessor<T>>? _processors;
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PageContentQueryExecutor{T}"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="queryExecutor">The query executor.</param>
+        /// <param name="processors">The processors.</param>
         public PageContentQueryExecutor(ILogger<PageContentQueryExecutor<T>> logger,
-            IContentQueryExecutor queryExecutor, IEnumerable<IPageContentProcessor<T>>? processors) : base(queryExecutor)
+            IContentQueryExecutor queryExecutor, IEnumerable<IPageContentProcessor<T>>? processors) 
+            : base(logger, queryExecutor, processors)
         {
-            ArgumentNullException.ThrowIfNull(logger);
             ArgumentNullException.ThrowIfNull(queryExecutor);
-            _logger = logger;
-            _processors = processors?.ToImmutableList();
         }
 
+        /// <inheritdoc />
         [return: NotNull]
-        public override async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
+        protected override async Task<IEnumerable<T>> ExecuteQueryInternalAsync(ContentItemQueryBuilder queryBuilder,
             ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
         {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var results = await QueryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions,
-                    cancellationToken: cancellationToken);
-
-                if (_processors == null)
-                {
-                    return results;
-                }
-
-                foreach (var result in results)
-                {
-                    foreach (var processor in _processors.OrderBy(x => x.Order))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        await processor.ProcessAsync(result, cancellationToken);
-                    }
-                }
-
-                return results ?? [];
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return [];
-            }
+            return await QueryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken);
         }
     }
 }
