@@ -1,13 +1,15 @@
 ﻿using System.Linq.Expressions;
+using CMS.ContentEngine;
+using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors;
 
 internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<MethodCallExpression>
 {
-    private readonly ExpressionContext _context;
+    private readonly IExpressionContext _context;
 
-    public MethodCallExpressionProcessor(ExpressionContext context)
+    public MethodCallExpressionProcessor(IExpressionContext context)
     {
         _context = context;
     }
@@ -29,7 +31,6 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
                 case nameof(string.Contains):
                     ProcessStringContains(node);
                     break;
-
                 case nameof(string.StartsWith):
                     ProcessStringStartsWith(node);
                     break;
@@ -81,7 +82,7 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
         }
         else
         {
-            throw new InvalidOperationException("Invalid expression format for string.Contains.");
+            throw new InvalidExpressionFormatException("Invalid expression format for string.Contains.");
         }
     }
 
@@ -102,14 +103,105 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
         }
         else
         {
-            throw new InvalidOperationException("Invalid expression format for string.StartsWith.");
+            throw new InvalidExpressionFormatException("Invalid expression format for string.StartsWith.");
         }
     }
 
     private void ProcessEnumerableContains(MethodCallExpression node)
     {
-        // TODO: Implement collection Contains logic using ExpressionContext
-        throw new NotSupportedException("Enumerable.Contains is not yet implemented in ExpressionContext.");
+        // Handles Enumerable.Contains(collection, value)
+        // or collection.Contains(value)
+        Expression? collectionExpr = null;
+        Expression? valueExpr = null;
+
+        if (node.Arguments.Count == 2)
+        {
+            // Static call: Enumerable.Contains(collection, value)
+            collectionExpr = node.Arguments[0];
+            valueExpr = node.Arguments[1];
+        }
+        else if (node.Arguments.Count == 1 && node.Object != null)
+        {
+            // Instance call: collection.Contains(value)
+            collectionExpr = node.Object;
+            valueExpr = node.Arguments[0];
+        }
+        else
+        {
+            throw new InvalidExpressionFormatException("Invalid Enumerable.Contains expression format.");
+        }
+
+        // Only support collection as ConstantExpression or MemberExpression for now
+        object? collectionValue = null;
+        string? paramName = null;
+
+        if (collectionExpr is ConstantExpression constCollection)
+        {
+            collectionValue = constCollection.Value;
+            paramName = $"p_{Guid.NewGuid():N}";
+        }
+        else if (collectionExpr is MemberExpression memberCollection)
+        {
+            // Try to evaluate the member expression
+            var lambda = Expression.Lambda(memberCollection);
+            collectionValue = lambda.Compile().DynamicInvoke();
+            paramName = memberCollection.Member.Name;
+        }
+        else
+        {
+            throw new NotSupportedException("Only constant or member collections are supported in Enumerable.Contains.");
+        }
+
+        // Value to check for
+        object? value = null;
+        if (valueExpr is ConstantExpression constValue)
+        {
+            value = constValue.Value;
+        }
+        else if (valueExpr is MemberExpression memberValue)
+        {
+            var lambda = Expression.Lambda(memberValue);
+            value = lambda.Compile().DynamicInvoke();
+        }
+        else
+        {
+            throw new NotSupportedException("Only constant or member values are supported in Enumerable.Contains.");
+        }
+
+        // The WhereIn method expects the collection as the second argument (ICollection<T>)
+        // and the field/column name as the first argument (string)
+        _context.AddParameter(paramName, collectionValue);
+
+        // Try to cast collectionValue to a strongly-typed ICollection<T>
+        void AddWhereInTyped(string paramName, object? collectionValue)
+        {
+            if (collectionValue is System.Collections.IEnumerable enumerable)
+            {
+                var elementType = collectionValue.GetType().IsArray
+                    ? collectionValue.GetType().GetElementType()
+                    : collectionValue.GetType().GetGenericArguments().FirstOrDefault();
+
+                if (elementType != null)
+                {
+                    var whereInMethod = typeof(WhereParameters)
+                        .GetMethods()
+                        .FirstOrDefault(m => m.Name == "WhereIn" && m.GetParameters().Length == 2);
+
+                    if (whereInMethod != null)
+                    {
+                        var genericMethod = whereInMethod.MakeGenericMethod(elementType);
+                        _context.AddWhereAction(w =>
+                        {
+                            genericMethod.Invoke(w, new object[] { paramName, collectionValue });
+                        });
+                        return;
+                    }
+                }
+            }
+            throw new NotSupportedException("Collection must be a strongly-typed IEnumerable<T> for WhereIn.");
+        }
+
+        AddWhereInTyped(paramName, collectionValue);
     }
 
     // Removed ProcessContainsMethod as it used QueryParameterManager. Refactor or reimplement as needed for ExpressionContext.

@@ -6,9 +6,9 @@ namespace XperienceCommunity.DataContext.Processors;
 
 internal sealed class UnaryExpressionProcessor: IExpressionProcessor<UnaryExpression>
 {
-    private readonly ExpressionContext _context;
+    private readonly IExpressionContext _context;
 
-    public UnaryExpressionProcessor(ExpressionContext context)
+    public UnaryExpressionProcessor(IExpressionContext context)
     {
         _context = context;
     }

@@ -1,14 +1,15 @@
 ﻿using System.Linq.Expressions;
+using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Interfaces;
 
 namespace XperienceCommunity.DataContext.Processors;
 
 internal sealed class EqualityExpressionProcessor : IExpressionProcessor<BinaryExpression>
 {
-    private readonly ExpressionContext _context;
+    private readonly IExpressionContext _context;
     private readonly bool _isEqual;
 
-    public EqualityExpressionProcessor(ExpressionContext context, bool isEqual = true)
+    public EqualityExpressionProcessor(IExpressionContext context, bool isEqual = true)
     {
         _context = context;
         _isEqual = isEqual;
@@ -42,7 +43,7 @@ internal sealed class EqualityExpressionProcessor : IExpressionProcessor<BinaryE
         }
         else
         {
-            throw new InvalidOperationException("Invalid expression format for equality comparison.");
+            throw new InvalidExpressionFormatException("Invalid expression format for equality comparison.");
         }
     }
 
@@ -84,7 +85,7 @@ internal sealed class EqualityExpressionProcessor : IExpressionProcessor<BinaryE
         }
         else
         {
-            throw new InvalidOperationException("Invalid unary expression format for equality comparison.");
+            throw new InvalidExpressionFormatException("Invalid unary expression format for equality comparison.");
         }
     }
 

@@ -177,7 +177,7 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
     /// <inheritdoc />
     public virtual IDataContext<T> WithColumns(params string[] columnNames)
     {
-        _columnNames ??= new HashSet<string>(columnNames);
+        _columnNames ??= [.. columnNames];
         return this;
     }
 

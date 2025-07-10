@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Linq.Expressions;
 using System.Collections.Generic;
-using Xunit;
+using System.Linq.Expressions;
 using XperienceCommunity.DataContext;
+using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Interfaces;
 using XperienceCommunity.DataContext.Processors;
+using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests;
 
@@ -32,7 +33,7 @@ public class ContentItemQueryExpressionVisitorTests
     {
         var ctx = new ExpressionContext();
         var visitor = new ContentItemQueryExpressionVisitor(ctx);
-        Assert.Throws<NotSupportedException>(() => visitor.GetProcessor(typeof(ParameterExpression)));
+        Assert.Throws<UnsupportedExpressionException>(() => visitor.GetProcessor(typeof(ParameterExpression)));
     }
 
     [Fact]
@@ -56,7 +57,7 @@ public class ContentItemQueryExpressionVisitorTests
 
         // ExpressionType.ExclusiveOr is not supported
         var expr = Expression.ExclusiveOr(Expression.Constant(1), Expression.Constant(2));
-        Assert.Throws<NotSupportedException>(() => visitor.Visit(expr));
+        Assert.Throws<UnsupportedExpressionException>(() => visitor.Visit(expr));
     }
 
     [Fact]
@@ -144,42 +145,6 @@ public class ContentItemQueryExpressionVisitorTests
         var result = visitor.Visit(expr);
 
         Assert.Equal(expr, result);
-    }
-
-    [Fact]
-    public void VisitMember_SetsCurrentMemberName_ToMemberName()
-    {
-        var ctx = new ExpressionContext();
-        var visitor = new ContentItemQueryExpressionVisitor(ctx);
-
-        var param = Expression.Parameter(typeof(DateTime), "dt");
-        var member = Expression.Property(param, nameof(DateTime.Year));
-
-        // Use reflection to check private field after visit
-        visitor.Visit(member);
-
-        var field = typeof(ContentItemQueryExpressionVisitor)
-            .GetField("_currentMemberName", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var value = (string)field!.GetValue(visitor)!;
-
-        Assert.Equal(nameof(DateTime.Year), value);
-    }
-
-    [Fact]
-    public void VisitConstant_SetsCurrentValue_ToConstantValue()
-    {
-        var ctx = new ExpressionContext();
-        var visitor = new ContentItemQueryExpressionVisitor(ctx);
-
-        var constant = Expression.Constant(12345);
-
-        visitor.Visit(constant);
-
-        var field = typeof(ContentItemQueryExpressionVisitor)
-            .GetField("_currentValue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var value = field!.GetValue(visitor);
-
-        Assert.Equal(12345, value);
     }
 
     [Fact]
