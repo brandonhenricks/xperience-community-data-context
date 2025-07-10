@@ -2,36 +2,35 @@
 using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 
-namespace XperienceCommunity.DataContext
+namespace XperienceCommunity.DataContext;
+
+public sealed class ReusableSchemaExecutor<T> : BaseContentQueryExecutor<T>
 {
-    public sealed class ReusableSchemaExecutor<T> : BaseContentQueryExecutor<T>
+    private readonly ILogger<ReusableSchemaExecutor<T>> _logger;
+
+    public ReusableSchemaExecutor(ILogger<ReusableSchemaExecutor<T>> logger, IContentQueryExecutor queryExecutor) : base(queryExecutor)
     {
-        private readonly ILogger<ReusableSchemaExecutor<T>> _logger;
+        ArgumentNullException.ThrowIfNull(logger);
+        _logger = logger;
+    }
 
-        public ReusableSchemaExecutor(ILogger<ReusableSchemaExecutor<T>> logger, IContentQueryExecutor queryExecutor) : base(queryExecutor)
+    [return: NotNull]
+    public override async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
+        ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
+    {
+        try
         {
-            ArgumentNullException.ThrowIfNull(logger);
-            _logger = logger;
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var results = await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
+                cancellationToken: cancellationToken);
+
+            return results ?? [];
         }
-
-        [return: NotNull]
-        public override async Task<IEnumerable<T>> ExecuteQueryAsync(ContentItemQueryBuilder queryBuilder,
-            ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
+        catch (Exception ex)
         {
-            try
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var results = await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
-                    cancellationToken: cancellationToken);
-
-                return results ?? [];
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return [];
-            }
+            _logger.LogError(ex, ex.Message);
+            return [];
         }
     }
 }

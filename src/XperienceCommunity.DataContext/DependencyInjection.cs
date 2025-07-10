@@ -2,55 +2,54 @@
 using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Interfaces;
 
-namespace XperienceCommunity.DataContext
+namespace XperienceCommunity.DataContext;
+
+/// <summary>
+/// Provides extension methods for configuring dependency injection for XperienceDataContext.
+/// </summary>
+public static class DependencyInjection
 {
     /// <summary>
-    /// Provides extension methods for configuring dependency injection for XperienceDataContext.
+    /// Adds the XperienceDataContext services to the specified <see cref="IServiceCollection"/>.
     /// </summary>
-    public static class DependencyInjection
+    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="cacheInMinutes"></param>
+    /// <returns>The <see cref="IServiceCollection"/>.</returns>
+    public static IServiceCollection AddXperienceDataContext(this IServiceCollection services, int? cacheInMinutes)
     {
-        /// <summary>
-        /// Adds the XperienceDataContext services to the specified <see cref="IServiceCollection"/>.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-        /// <param name="cacheInMinutes"></param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddXperienceDataContext(this IServiceCollection services, int? cacheInMinutes)
+        services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
+        services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
+        services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>));
+        services.AddScoped<IXperienceDataContext, XperienceDataContext>();
+        services.AddScoped(typeof(ContentQueryExecutor<>));
+        services.AddScoped(typeof(PageContentQueryExecutor<>));
+
+        var config = new XperienceDataContextConfig();
+
+        if (cacheInMinutes.HasValue)
         {
-            services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
-            services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
-            services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>));
-            services.AddScoped<IXperienceDataContext, XperienceDataContext>();
-            services.AddScoped(typeof(ContentQueryExecutor<>));
-            services.AddScoped(typeof(PageContentQueryExecutor<>));
-
-            var config = new XperienceDataContextConfig();
-
-            if (cacheInMinutes.HasValue)
-            {
-                config.CacheTimeOut = cacheInMinutes.Value;
-            }
-
-            services.AddSingleton(config);
-
-            return services;
+            config.CacheTimeOut = cacheInMinutes.Value;
         }
 
-        /// <summary>
-        /// Adds the XperienceDataContext services to the specified <see cref="IServiceCollection"/>.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-        /// <returns>The modified <see cref="XperienceContextBuilder"/>.</returns>
-        public static XperienceContextBuilder AddXperienceDataContext(this IServiceCollection services)
-        {
-            services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
-            services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
-            services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>)); 
-            services.AddScoped<IXperienceDataContext, XperienceDataContext>();
-            services.AddScoped(typeof(ContentQueryExecutor<>));
-            services.AddScoped(typeof(PageContentQueryExecutor<>));
+        services.AddSingleton(config);
 
-            return new XperienceContextBuilder(services);
-        }
+        return services;
+    }
+
+    /// <summary>
+    /// Adds the XperienceDataContext services to the specified <see cref="IServiceCollection"/>.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <returns>The modified <see cref="XperienceContextBuilder"/>.</returns>
+    public static XperienceContextBuilder AddXperienceDataContext(this IServiceCollection services)
+    {
+        services.AddScoped(typeof(IContentItemContext<>), typeof(ContentItemContext<>));
+        services.AddScoped(typeof(IPageContentContext<>), typeof(PageContentContext<>));
+        services.AddScoped(typeof(IReusableSchemaContext<>), typeof(ReusableSchemaContext<>)); 
+        services.AddScoped<IXperienceDataContext, XperienceDataContext>();
+        services.AddScoped(typeof(ContentQueryExecutor<>));
+        services.AddScoped(typeof(PageContentQueryExecutor<>));
+
+        return new XperienceContextBuilder(services);
     }
 }

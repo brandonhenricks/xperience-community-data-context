@@ -1,104 +1,116 @@
 ﻿using System.Linq.Expressions;
 using XperienceCommunity.DataContext.Interfaces;
 
-namespace XperienceCommunity.DataContext.Processors
+namespace XperienceCommunity.DataContext.Processors;
+
+internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<MethodCallExpression>
 {
-    internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<MethodCallExpression>
+    private readonly ExpressionContext _context;
+
+    public MethodCallExpressionProcessor(ExpressionContext context)
     {
-        private readonly QueryParameterManager _parameterManager;
+        _context = context;
+    }
 
-        public MethodCallExpressionProcessor(QueryParameterManager parameterManager)
-        {
-            _parameterManager = parameterManager;
-        }
+    public bool CanProcess(Expression node)
+    {
+        return node is MethodCallExpression methodCallExpression &&
+               (methodCallExpression.Method.DeclaringType == typeof(string) ||
+                methodCallExpression.Method.DeclaringType == typeof(Enumerable) ||
+                methodCallExpression.Method.DeclaringType == typeof(Queryable));
+    }
 
-        public bool CanProcess(Expression node)
+    public void Process(MethodCallExpression node)
+    {
+        if (node.Method.DeclaringType == typeof(string))
         {
-            return node is MethodCallExpression methodCallExpression &&
-                   (methodCallExpression.Method.DeclaringType == typeof(string) ||
-                    methodCallExpression.Method.DeclaringType == typeof(Enumerable) ||
-                    methodCallExpression.Method.DeclaringType == typeof(Queryable));
-        }
-
-        public void Process(MethodCallExpression node)
-        {
-            if (node.Method.DeclaringType == typeof(string))
+            switch (node.Method.Name)
             {
-                switch (node.Method.Name)
-                {
-                    case nameof(string.Contains):
-                        _parameterManager.AddStringContains(node);
-                        break;
+                case nameof(string.Contains):
+                    ProcessStringContains(node);
+                    break;
 
-                    case nameof(string.StartsWith):
-                        _parameterManager.AddStringStartsWith(node);
-                        break;
+                case nameof(string.StartsWith):
+                    ProcessStringStartsWith(node);
+                    break;
 
-                    default:
-                        throw new NotSupportedException($"The method '{node.Method.Name}' is not supported.");
-                }
-            }
-            else if (node.Method.DeclaringType == typeof(Enumerable))
-            {
-                if (node.Method.Name == nameof(Enumerable.Contains))
-                {
-                    _parameterManager.AddEnumerableContains(node);
-                }
-                else
-                {
+                default:
                     throw new NotSupportedException($"The method '{node.Method.Name}' is not supported.");
-                }
             }
-            else if (node.Method.DeclaringType == typeof(Queryable))
+        }
+        else if (node.Method.DeclaringType == typeof(Enumerable))
+        {
+            if (node.Method.Name == nameof(Enumerable.Contains))
             {
-                switch (node.Method.Name)
-                {
-                    case nameof(Queryable.Where):
-                        _parameterManager.AddQueryableWhere(node);
-                        break;
-                    case nameof(Queryable.Select):
-                        _parameterManager.AddQueryableSelect(node);
-                        break;
-                    // Add other Queryable methods as needed
-                    default:
-                        throw new NotSupportedException($"The method call '{node.Method.Name}' is not supported.");
-                }
-            }
-            else if (node.Method.Name == nameof(Enumerable.Contains))
-            {
-                _parameterManager.AddEnumerableContains(node);
+                ProcessEnumerableContains(node);
             }
             else
             {
                 throw new NotSupportedException($"The method '{node.Method.Name}' is not supported.");
             }
-
         }
-
-        private void ProcessContainsMethod(MethodCallExpression node, object?[] arguments)
+        else if (node.Method.DeclaringType == typeof(Queryable))
         {
-            if (node.Object is MemberExpression memberExpression)
+            switch (node.Method.Name)
             {
-                if (arguments[0] == null)
-                {
-                    return;
-                }
-                // Handle cases like "x.Name.Contains("test")"
-                _parameterManager.AddMethodCall("Contains", memberExpression.Member.Name, arguments[0]!);
+                case nameof(Queryable.Where):
+                    // TODO: Implement Queryable.Where support with ExpressionContext
+                    break;
+
+                case nameof(Queryable.Select):
+                    // TODO: Implement Queryable.Select support with ExpressionContext
+                    break;
+
+                default:
+                    throw new NotSupportedException($"The method call '{node.Method.Name}' is not supported.");
             }
-            else if (arguments.Length == 2 && arguments[1] is MemberExpression collectionMember)
-            {
-                if (arguments[0] == null)
-                {
-                    return;
-                }
-                // Handle cases like "collection.Contains(x.Name)"
-                _parameterManager.AddMethodCall("Contains", collectionMember.Member.Name, arguments[0]!);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid expression format for Contains method.");
-            }
+        }
+        else
+        {
+            throw new NotSupportedException($"The method '{node.Method.Name}' is not supported.");
         }
     }
+
+    private void ProcessStringContains(MethodCallExpression node)
+    {
+        if (node.Object is MemberExpression member && node.Arguments[0] is ConstantExpression constant)
+        {
+            var paramName = member.Member.Name;
+            _context.AddParameter(paramName, constant.Value);
+            _context.AddWhereAction(w => w.WhereContains(paramName, constant.Value?.ToString()));
+        }
+        else
+        {
+            throw new InvalidOperationException("Invalid expression format for string.Contains.");
+        }
+    }
+
+    private void ProcessStringStartsWith(MethodCallExpression node)
+    {
+        if (node.Object is MemberExpression member && node.Arguments[0] is ConstantExpression constant)
+        {
+            var paramName = member.Member.Name;
+            _context.AddParameter(paramName, constant.Value);
+            _context.AddWhereAction(w => w.WhereStartsWith(paramName, constant.Value?.ToString()));
+        }
+        else if (node.Object is ConstantExpression constantObj && node.Arguments[0] is ConstantExpression constantArg)
+        {
+            // Handle case where the object is a constant (e.g., "Hello".StartsWith("He"))
+            var paramName = constantObj.Value?.ToString();
+            _context.AddParameter(paramName, constantArg.Value);
+            _context.AddWhereAction(w => w.WhereStartsWith(paramName, constantArg.Value?.ToString()));
+        }
+        else
+        {
+            throw new InvalidOperationException("Invalid expression format for string.StartsWith.");
+        }
+    }
+
+    private void ProcessEnumerableContains(MethodCallExpression node)
+    {
+        // TODO: Implement collection Contains logic using ExpressionContext
+        throw new NotSupportedException("Enumerable.Contains is not yet implemented in ExpressionContext.");
+    }
+
+    // Removed ProcessContainsMethod as it used QueryParameterManager. Refactor or reimplement as needed for ExpressionContext.
 }
