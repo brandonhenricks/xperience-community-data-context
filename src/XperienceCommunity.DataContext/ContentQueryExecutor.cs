@@ -3,32 +3,31 @@ using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Interfaces;
 
-namespace XperienceCommunity.DataContext
+namespace XperienceCommunity.DataContext;
+
+/// <summary>
+/// Executor for content item queries.
+/// </summary>
+/// <typeparam name="T">The type of content item.</typeparam>
+public sealed class ContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IContentItemProcessor<T>> 
+    where T : class, IContentItemFieldsSource, new()
 {
     /// <summary>
-    /// Executor for content item queries.
+    /// Initializes a new instance of the <see cref="ContentQueryExecutor{T}"/> class.
     /// </summary>
-    /// <typeparam name="T">The type of content item.</typeparam>
-    public sealed class ContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IContentItemProcessor<T>> 
-        where T : class, IContentItemFieldsSource, new()
+    /// <param name="logger">The logger.</param>
+    /// <param name="queryExecutor">The query executor.</param>
+    /// <param name="processors">The processors.</param>
+    public ContentQueryExecutor(ILogger<ContentQueryExecutor<T>> logger, IContentQueryExecutor queryExecutor,
+        IEnumerable<IContentItemProcessor<T>>? processors) : base(logger, queryExecutor, processors)
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ContentQueryExecutor{T}"/> class.
-        /// </summary>
-        /// <param name="logger">The logger.</param>
-        /// <param name="queryExecutor">The query executor.</param>
-        /// <param name="processors">The processors.</param>
-        public ContentQueryExecutor(ILogger<ContentQueryExecutor<T>> logger, IContentQueryExecutor queryExecutor,
-            IEnumerable<IContentItemProcessor<T>>? processors) : base(logger, queryExecutor, processors)
-        {
-        }
+    }
 
-        /// <inheritdoc />
-        [return: NotNull]
-        protected override async Task<IEnumerable<T>> ExecuteQueryInternalAsync(ContentItemQueryBuilder queryBuilder,
-            ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
-        {
-            return await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken);
-        }
+    /// <inheritdoc />
+    [return: NotNull]
+    protected override async Task<IEnumerable<T>> ExecuteQueryInternalAsync(ContentItemQueryBuilder queryBuilder,
+        ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
+    {
+        return await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken);
     }
 }
