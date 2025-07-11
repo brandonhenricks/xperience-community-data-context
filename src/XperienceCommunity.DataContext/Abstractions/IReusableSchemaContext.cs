@@ -13,6 +13,12 @@ public interface IReusableSchemaContext<T> : IDataContext<T>
     IDataContext<T> WithContentTypeFields();
 
     /// <summary>
+    /// Specifies that the data context should include web page data.
+    /// </summary>
+    /// <returns>The data context with web page data included.</returns>
+    IDataContext<T> WithWebPageData();
+
+    /// <summary>
     /// Specifies the reusable schemas to include in the data context.
     /// </summary>
     /// <param name="schemaNames">The names of the reusable schemas.</param>
