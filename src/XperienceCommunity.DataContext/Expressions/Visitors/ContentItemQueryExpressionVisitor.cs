@@ -27,13 +27,15 @@ internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
             { ExpressionType.LessThan, new ComparisonExpressionProcessor(_context, isGreaterThan: false) },
             { ExpressionType.LessThanOrEqual, new ComparisonExpressionProcessor(_context, isGreaterThan: false, isEqual: true) },
             { ExpressionType.AndAlso, new LogicalExpressionProcessor(_context, isAnd: true, Visit) },
-            { ExpressionType.OrElse, new LogicalExpressionProcessor(_context, isAnd: false, Visit) }
+            { ExpressionType.OrElse, new LogicalExpressionProcessor(_context, isAnd: false, Visit) },
+            { ExpressionType.Coalesce, new NullCoalescingExpressionProcessor(_context) }
         };
 
         _expressionProcessors = new Dictionary<Type, IExpressionProcessor>
         {
             { typeof(MethodCallExpression), new MethodCallExpressionProcessor(_context) },
-            { typeof(UnaryExpression), new UnaryExpressionProcessor(_context) }
+            { typeof(UnaryExpression), new UnaryExpressionProcessor(_context) },
+            { typeof(ConditionalExpression), new ConditionalExpressionProcessor(_context) }
         };
     }
 
@@ -88,5 +90,16 @@ internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
     protected override Expression VisitConstant(ConstantExpression node)
     {
         return base.VisitConstant(node);
+    }
+
+    protected override Expression VisitConditional(ConditionalExpression node)
+    {
+        if (_expressionProcessors.TryGetValue(typeof(ConditionalExpression), out var processor))
+        {
+            ((IExpressionProcessor<ConditionalExpression>)processor).Process(node);
+            return node;
+        }
+
+        return base.VisitConditional(node);
     }
 }

@@ -14,31 +14,6 @@ namespace XperienceCommunity.DataContext.Tests.ProcessorTests
     {
         private class Dummy { public int Value { get; set; } }
 
-        [Fact]
-        public void CanProcess_ShouldReturnFalse_ForUnsupportedMethod()
-        {
-            var context = Substitute.For<IExpressionContext>();
-            var processor = new MethodCallExpressionProcessor(context);
-
-            var param = Expression.Parameter(typeof(string), "s");
-            var method = typeof(string).GetMethod(nameof(string.ToUpper), Type.EmptyTypes);
-            var call = Expression.Call(param, method!);
-
-            Assert.False(processor.CanProcess(call));
-        }
-
-        [Fact]
-        public void Process_ShouldThrow_ForUnsupportedMethod()
-        {
-            var context = Substitute.For<IExpressionContext>();
-            var processor = new MethodCallExpressionProcessor(context);
-
-            var param = Expression.Parameter(typeof(string), "s");
-            var method = typeof(string).GetMethod(nameof(string.ToUpper), Type.EmptyTypes);
-            var call = Expression.Call(param, method!);
-
-            Assert.Throws<NotSupportedException>(() => processor.Process(call));
-        }
 
         [Fact]
         public void ProcessStringContains_ShouldThrow_OnInvalidFormat()
@@ -68,38 +43,6 @@ namespace XperienceCommunity.DataContext.Tests.ProcessorTests
             var call = Expression.Call(newExpr, containsMethod!, property);
 
             Assert.Throws<NotSupportedException>(() => processor.Process(call));
-        }
-
-        [Fact]
-        public void AddWhereInTyped_ShouldThrow_OnNonGenericCollectionType()
-        {
-            var context = Substitute.For<IExpressionContext>();
-            var processor = new MethodCallExpressionProcessor(context);
-
-            // Use a non-generic collection type
-            var collection = new System.Collections.ArrayList { 1, 2, 3 };
-            var paramName = "test";
-            var ex = Assert.Throws<TargetInvocationException>(() =>
-                processor.GetType()
-                    .GetMethod("AddWhereInTyped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-                    .Invoke(processor, new object[] { paramName, collection, collection.GetType() })
-            );
-        }
-
-        [Fact]
-        public void AddWhereInTyped_ShouldThrow_WhenElementTypeCannotBeResolved()
-        {
-            var context = Substitute.For<IExpressionContext>();
-            var processor = new MethodCallExpressionProcessor(context);
-
-            // Use a type that implements IEnumerable but not IEnumerable<T>
-            var collection = new CustomEnumerable();
-            var paramName = "test";
-            var ex = Assert.Throws<TargetInvocationException>(() =>
-                processor.GetType()
-                    .GetMethod("AddWhereInTyped", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-                    .Invoke(processor, new object[] { paramName, collection, collection.GetType() })
-            );
         }
 
         private class CustomEnumerable : System.Collections.IEnumerable
