@@ -251,29 +251,104 @@ public class SharedContentService
 
 ### Custom Processors and Extensibility
 
-The library includes an extensible processor system for custom content transformations:
+The library includes an extensible processor system for custom content transformations. There are specialized processor interfaces for different content types:
+
+#### Content Item Processors
+
+For content hub items, implement `IContentItemProcessor<T>`:
 
 ```csharp
-// Custom processor for specialized queries
-public class CustomContentProcessor : IExpressionProcessor
+// Custom processor for content items
+public class BlogPostProcessor : IContentItemProcessor<BlogPost>
 {
+    public int Order => 1; // Execution order
+
+    public async Task ProcessAsync(BlogPost content, CancellationToken cancellationToken = default)
+    {
+        // Custom processing logic for blog posts
+        // E.g., update search index, generate thumbnails, etc.
+        content.ProcessedDate = DateTime.UtcNow;
+        
+        // Async processing example
+        await SomeAsyncOperation(content, cancellationToken);
+    }
+}
+```
+
+#### Page Content Processors
+
+For web pages, implement `IPageContentProcessor<T>`:
+
+```csharp
+// Custom processor for page content
+public class LandingPageProcessor : IPageContentProcessor<LandingPage>
+{
+    public int Order => 2; // Execution order
+
+    public async Task ProcessAsync(LandingPage content, CancellationToken cancellationToken = default)
+    {
+        // Custom processing logic for landing pages
+        // E.g., analytics tracking, personalization, etc.
+        content.ViewCount++;
+        
+        await UpdateAnalytics(content, cancellationToken);
+    }
+}
+```
+
+#### Expression Processors
+
+For custom LINQ expression handling, implement `IExpressionProcessor<T>`:
+
+```csharp
+// Custom expression processor for specialized queries
+public class CustomMethodProcessor : IExpressionProcessor<MethodCallExpression>
+{
+    private readonly IExpressionContext _context;
+
+    public CustomMethodProcessor(IExpressionContext context)
+    {
+        _context = context;
+    }
+
     public bool CanProcess(Expression expression)
     {
         // Define when this processor should handle expressions
         return expression is MethodCallExpression method && 
-               method.Method.Name == "HasTag";
+               method.Method.Name == "HasCustomTag";
     }
 
-    public Expression Process(Expression expression)
+    public void Process(MethodCallExpression expression)
     {
         // Transform the expression for your specific needs
         // Implementation details depend on your requirements
-        return expression;
+        var methodCall = expression;
+        var tagValue = GetTagValue(methodCall);
+        
+        _context.AddParameter("CustomTag", tagValue);
+        _context.AddWhereAction(where => where.WhereEquals("Tags", tagValue));
     }
 }
+```
 
-// Register your custom processor
-services.AddScoped<IExpressionProcessor, CustomContentProcessor>();
+#### Registration
+
+Register your custom processors in the DI container using the fluent configuration:
+
+```csharp
+// Register content processors with fluent builder
+services.AddXperienceDataContext()
+    .AddContentItemProcessor<BlogPost, BlogPostProcessor>()
+    .AddPageContentProcessor<LandingPage, LandingPageProcessor>();
+
+// Or register expression processors directly
+services.AddScoped<IExpressionProcessor, CustomMethodProcessor>();
+
+// Alternative: Register with cache configuration
+services.AddXperienceDataContext(cacheInMinutes: 30);
+// Then register processors separately
+services.AddScoped<IContentItemProcessor<BlogPost>, BlogPostProcessor>();
+services.AddScoped<IPageContentProcessor<LandingPage>, LandingPageProcessor>();
 ```
 
 ### Unified Data Context Patterns
@@ -334,7 +409,6 @@ public class OptimizedContentService
             .WithLinkedItems(2) // Include linked items up to 2 levels
             .Where(x => x.IsFeatured == true)
             .OrderByDescending(x => x.PublishDate)
-            .Take(5)
             .ToListAsync();
     }
 }
