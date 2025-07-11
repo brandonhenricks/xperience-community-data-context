@@ -1,5 +1,7 @@
 ﻿using CMS.ContentEngine;
 using XperienceCommunity.DataContext.Abstractions;
+using System.Diagnostics;
+using System.ComponentModel;
 
 namespace XperienceCommunity.DataContext.Contexts;
 
@@ -8,6 +10,9 @@ namespace XperienceCommunity.DataContext.Contexts;
 /// Tracks parameter names/values, member/property access chains, logical groupings, and intermediate query fragments.
 /// Extensible for future LINQ features and Kentico API changes.
 /// </summary>
+[DebuggerDisplay("Parameters: {Parameters.Count}, Members: {CurrentMemberPath}, WhereActions: {WhereActions.Count}, Groupings: {LogicalGroupings.Count}")]
+[DebuggerTypeProxy(typeof(ExpressionContextDebugView))]
+[Description("Context for building and evaluating LINQ expressions during query translation")]
 public sealed class ExpressionContext: IExpressionContext
 {
     private readonly Dictionary<string, object?> _parameters = new();
@@ -96,4 +101,35 @@ public sealed class ExpressionContext: IExpressionContext
         _logicalGroupings.Clear();
         _whereActions.Clear();
     }
+}
+
+/// <summary>
+/// Debug view proxy for ExpressionContext that provides a cleaner debugging experience.
+/// </summary>
+internal sealed class ExpressionContextDebugView
+{
+    private readonly ExpressionContext _context;
+
+    public ExpressionContextDebugView(ExpressionContext context)
+    {
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public KeyValuePair<string, object?>[] Parameters => _context.Parameters.ToArray();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    public string[] MemberAccessChain => _context.MemberAccessChain.ToArray();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    public string[] LogicalGroupings => _context.LogicalGroupings.ToArray();
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    public int WhereActionCount => _context.WhereActions.Count;
+
+    public string CurrentMemberPath => string.Join(".", _context.MemberAccessChain.Reverse());
+    
+    public bool HasActiveGroupings => _context.LogicalGroupings.Count > 0;
+    
+    public bool HasParameters => _context.Parameters.Count > 0;
 }

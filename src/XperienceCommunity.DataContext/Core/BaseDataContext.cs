@@ -1,5 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using CMS.ContentEngine;
 using CMS.Helpers;
 using CMS.Websites;
@@ -15,6 +18,8 @@ namespace XperienceCommunity.DataContext.Core;
 /// </summary>
 /// <typeparam name="T">The type of content item.</typeparam>
 /// <typeparam name="TExecutor">The type of query executor.</typeparam>
+[DebuggerDisplay("ContentType: {_contentType}, Language: {_language}, Parameters: {_parameters.Count}, HasQuery: {_query != null}, CacheTimeout: {_config.CacheTimeOut}min")]
+[Description("Base class for content querying with expression support and caching")]
 public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
     where TExecutor : BaseContentQueryExecutor<T>
 {

@@ -14,6 +14,7 @@ Enhance your Kentico Xperience development with a fluent API for intuitive and e
 - **Extensible processor system** for custom content processing and transformation pipelines
 - **Interface support** in `ReusableSchemaContext` for maximum flexibility
 - **Modern architecture** with base classes reducing code duplication by 70%+
+- **Comprehensive debugging support** with enhanced debugger displays, diagnostic logging, performance tracking, and telemetry integration
 - Built on **.NET 6/.NET 8/.NET 9**, ensuring modern development practices
 - Seamless integration with **Xperience by Kentico**
 
@@ -79,7 +80,7 @@ To integrate XperienceCommunity.DataContext into your Kentico Xperience project,
    Or add it directly to your `.csproj` file:
 
    ```xml
-   <PackageReference Include="XperienceCommunity.DataContext" Version="[latest-version]" />
+   <PackageReference Include="XperienceCommunity.Data.Context" Version="[latest-version]" />
    ```
 
 2. **Configure Services:**
@@ -338,6 +339,84 @@ public class OptimizedContentService
     }
 }
 ```
+
+## Debugging & Diagnostics
+
+XperienceCommunity.DataContext provides comprehensive debugging and diagnostic capabilities to help developers troubleshoot issues and gain insights into query execution:
+
+### Enhanced Debugger Support
+
+All key classes include rich `[DebuggerDisplay]` attributes for better debugging experience:
+
+```csharp
+// ExpressionContext shows: Parameters: 3, Members: User.Name, WhereActions: 2
+// BaseDataContext shows: ContentType: BlogPost, Language: en-US, Parameters: 2, HasQuery: true
+
+var context = dataContext.ForContentType<BlogPost>()
+    .Where(x => x.Title.Contains("Tutorial"));
+// Examine context in debugger to see detailed state information
+```
+
+### Diagnostic Logging
+
+Enable detailed execution tracking and performance monitoring:
+
+```csharp
+// Enable diagnostics globally
+DataContextDiagnostics.DiagnosticsEnabled = true;
+DataContextDiagnostics.TraceLevel = LogLevel.Debug;
+
+// Or enable for specific operations
+var context = dataContext.ForContentType<BlogPost>()
+    .EnableDiagnostics(LogLevel.Debug)
+    .Where(x => x.IsPublished);
+
+// Get diagnostic reports
+string report = context.GetDiagnosticReport("ExpressionProcessing");
+var stats = context.GetPerformanceStats();
+```
+
+### Performance Tracking
+
+Built-in performance counters track query execution metrics:
+
+```csharp
+// Access performance statistics
+var avgTime = ProcessorSupportedQueryExecutor<BlogPost, IProcessor<BlogPost>>.AverageProcessingTimeMs;
+var totalQueries = ProcessorSupportedQueryExecutor<BlogPost, IProcessor<BlogPost>>.TotalExecutions;
+
+// Detailed timing for specific operations
+var results = await context.ExecuteWithDiagnostics(
+    "ComplexQuery",
+    async ctx => await ctx.Where(x => x.Tags.Contains("tutorial")).ToListAsync()
+);
+```
+
+### Telemetry Integration
+
+Automatic OpenTelemetry/Activity support for distributed tracing:
+
+```csharp
+// Activities are created with detailed tags:
+// - contentType, processorCount, executionTimeMs, resultCount, error status
+// ActivitySource name: "XperienceCommunity.Data.Context.QueryExecution"
+```
+
+### Custom Diagnostics
+
+Add your own diagnostic logging:
+
+```csharp
+var context = dataContext.ForContentType<BlogPost>()
+    .LogDiagnostic("Starting complex operation")
+    .Where(x => x.Category == "Technology")
+    .LogDiagnostic("Applied filters", LogLevel.Debug);
+
+// Get detailed debug information
+Console.WriteLine(context.ToDebugString());
+```
+
+**📖 For comprehensive debugging guidance, see [Debugging Guide](docs/Debugging-Guide.md)**
 
 ## Troubleshooting & Best Practices
 
