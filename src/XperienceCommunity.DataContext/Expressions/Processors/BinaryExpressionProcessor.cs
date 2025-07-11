@@ -1,10 +1,17 @@
 ﻿using System.Linq.Expressions;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Abstractions.Processors;
 using XperienceCommunity.DataContext.Exceptions;
+using XperienceCommunity.DataContext.Diagnostics;
 
 namespace XperienceCommunity.DataContext.Expressions.Processors;
 
+[DebuggerDisplay("Processor: Binary, Context: {_context.Parameters.Count} params, {_context.WhereActions.Count} actions")]
+[Description("Processes binary expressions (equality, comparison, arithmetic) for query translation")]
 internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExpression>
 {
     private readonly IExpressionContext _context;
@@ -16,8 +23,38 @@ internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExp
         _context = context;
     }
 
+    [Conditional("DEBUG")]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    [DebuggerStepThrough]
+    private void ValidateExpression(BinaryExpression node, [CallerMemberName] string? callerName = null)
+    {
+        if (node.Left == null || node.Right == null)
+        {
+            throw new ExpressionProcessingException(
+                "Binary expression must have both left and right operands",
+                node,
+                $"NodeType: {node.NodeType}, Left: {node.Left?.NodeType}, Right: {node.Right?.NodeType}, Caller: {callerName}");
+        }
+    }
+
+    [Conditional("DEBUG")]
+    [DebuggerStepThrough]
+    private void LogProcessingStart(BinaryExpression node, [CallerMemberName] string? operation = null)
+    {
+        Debug.WriteLine($"[BinaryExpressionProcessor] Starting {operation}: {node.NodeType} | Left: {node.Left?.NodeType} | Right: {node.Right?.NodeType}");
+    }
+
     public void Process(BinaryExpression node)
     {
+        ValidateExpression(node);
+        LogProcessingStart(node);
+
+        // Log diagnostic information
+        DataContextDiagnostics.LogDiagnostic(
+            "ExpressionProcessing", 
+            $"Processing binary expression: {node.NodeType}",
+            LogLevel.Debug);
+
         switch (node.NodeType)
         {
             case ExpressionType.Equal:
@@ -67,22 +104,19 @@ internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExp
 
     private void ProcessEquality(BinaryExpression node, bool isEqual)
     {
-        MemberExpression member = null;
-        ConstantExpression constant = null;
-        var memberOnLeft = false;
+        MemberExpression? member = null;
+        ConstantExpression? constant = null;
 
         // Handle both (Member == Constant) and (Constant == Member)
         if (node.Left is MemberExpression leftMember && node.Right is ConstantExpression rightConstant)
         {
             member = leftMember;
             constant = rightConstant;
-            memberOnLeft = true;
         }
         else if (node.Left is ConstantExpression leftConstant && node.Right is MemberExpression rightMember)
         {
             member = rightMember;
             constant = leftConstant;
-            memberOnLeft = false;
         }
         else if (node.Left is ConstantExpression leftConst && node.Right is ConstantExpression rightConst)
         {
