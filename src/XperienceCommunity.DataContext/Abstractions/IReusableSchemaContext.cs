@@ -17,5 +17,4 @@ public interface IReusableSchemaContext<T> : IDataContext<T>
     /// </summary>
     /// <returns>The data context with web page data included.</returns>
     IDataContext<T> WithWebPageData();
-
 }

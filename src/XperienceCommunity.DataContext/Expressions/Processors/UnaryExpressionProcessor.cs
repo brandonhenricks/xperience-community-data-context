@@ -24,10 +24,21 @@ internal sealed class UnaryExpressionProcessor: IExpressionProcessor<UnaryExpres
                 ProcessNot(node);
                 break;
             case ExpressionType.Convert:
+            case ExpressionType.ConvertChecked:
                 ProcessConvert(node);
                 break;
             case ExpressionType.Quote:
                 ProcessQuote(node);
+                break;
+            case ExpressionType.TypeAs:
+                ProcessTypeAs(node);
+                break;
+            case ExpressionType.Negate:
+            case ExpressionType.NegateChecked:
+                ProcessNegate(node);
+                break;
+            case ExpressionType.UnaryPlus:
+                ProcessUnaryPlus(node);
                 break;
             default:
                 throw new UnsupportedExpressionException(node.NodeType, node);
@@ -108,6 +119,73 @@ internal sealed class UnaryExpressionProcessor: IExpressionProcessor<UnaryExpres
         // TODO: Refactor ContentItemQueryExpressionVisitor to use ExpressionContext if needed
         // var visitor = new ContentItemQueryExpressionVisitor(_context);
         // visitor.Visit(node);
+    }
+
+    private void ProcessTypeAs(UnaryExpression node)
+    {
+        // TypeAs operations (x as T) would require type checking support
+        // For now, we'll just process the operand and ignore the type cast
+        if (node.Operand is MemberExpression member)
+        {
+            var memberName = member.Member.Name;
+            _context.PushMember(memberName);
+        }
+        else
+        {
+            throw new NotSupportedException("TypeAs operator is only supported for member expressions.");
+        }
+    }
+
+    private void ProcessNegate(UnaryExpression node)
+    {
+        // Negate operations (-x) would require arithmetic support
+        if (node.Operand is MemberExpression member)
+        {
+            var memberName = member.Member.Name;
+            // For negation, we might need to use database-specific functions
+            throw new NotSupportedException("Negation operator requires database-specific arithmetic functions which are not currently implemented.");
+        }
+        else if (node.Operand is ConstantExpression constant)
+        {
+            // We can negate constants at compile time
+            object negatedValue = constant.Type switch
+            {
+                Type t when t == typeof(int) => -(int)constant.Value!,
+                Type t when t == typeof(long) => -(long)constant.Value!,
+                Type t when t == typeof(float) => -(float)constant.Value!,
+                Type t when t == typeof(double) => -(double)constant.Value!,
+                Type t when t == typeof(decimal) => -(decimal)constant.Value!,
+                _ => throw new NotSupportedException($"Negation is not supported for type {constant.Type}")
+            };
+            
+            var paramName = $"negated_{Guid.NewGuid():N}";
+            _context.AddParameter(paramName, negatedValue);
+            _context.AddWhereAction(w => w.WhereEquals(paramName, negatedValue));
+        }
+        else
+        {
+            throw new NotSupportedException("Negation operator is only supported for member expressions and constants.");
+        }
+    }
+
+    private void ProcessUnaryPlus(UnaryExpression node)
+    {
+        // Unary plus (+x) is essentially a no-op, just process the operand
+        if (node.Operand is MemberExpression member)
+        {
+            var memberName = member.Member.Name;
+            _context.PushMember(memberName);
+        }
+        else if (node.Operand is ConstantExpression constant)
+        {
+            var paramName = $"plus_{Guid.NewGuid():N}";
+            _context.AddParameter(paramName, constant.Value);
+            _context.AddWhereAction(w => w.WhereEquals(paramName, constant.Value));
+        }
+        else
+        {
+            throw new NotSupportedException("Unary plus operator is only supported for member expressions and constants.");
+        }
     }
 
     public bool CanProcess(Expression node)

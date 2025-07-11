@@ -13,9 +13,9 @@
    <PackageReference Include="NSubstitute" />
     <PackageReference Include="Kentico.Xperience.Core" />
     <PackageReference Include="coverlet.collector" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
-    <PackageReference Include="xunit.runner.visualstudio"/>
+    <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
 
   <ItemGroup>
