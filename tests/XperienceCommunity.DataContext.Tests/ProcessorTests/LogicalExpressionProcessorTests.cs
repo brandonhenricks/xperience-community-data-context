@@ -269,6 +269,97 @@ public class LogicalExpressionProcessorTests
         Assert.True(result); // Should return true because at least one operand is processable
     }
 
+    [Fact]
+    public void Process_ShouldHandleNullValues_InComplexExpressions()
+    {
+        var context = Substitute.For<IExpressionContext>();
+        // Provide a visit function to handle the Equal expression
+        Expression visit(Expression expr) => expr;
+        var processor = new LogicalExpressionProcessor(context, true, visit);
+
+        var left = Expression.Equal(
+            Expression.Property(Expression.Parameter(typeof(TestClass), "x"), nameof(TestClass.Name)),
+            Expression.Constant(null, typeof(string))
+        );
+        var right = Expression.Property(Expression.Parameter(typeof(TestClass), "y"), nameof(TestClass.IsActive));
+        var binary = Expression.AndAlso(left, right);
+
+        processor.Process(binary);
+
+        context.Received().PushLogicalGrouping("AND");
+        context.Received().PopLogicalGrouping(); // Verify cleanup
+    }
+
+    [Fact]
+    public void Process_ShouldHandleEmptyCollections_InContainsExpressions()
+    {
+        var context = Substitute.For<IExpressionContext>();
+        var processor = new MethodCallExpressionProcessor(context);
+
+        // Test with empty List<int>
+        var emptyList = new List<int>();
+        var param = Expression.Parameter(typeof(TestClass), "x");
+        var property = Expression.Property(param, nameof(TestClass.Age));
+        var containsMethod = typeof(List<int>).GetMethod("Contains", new[] { typeof(int) });
+        var call = Expression.Call(Expression.Constant(emptyList, typeof(List<int>)), containsMethod!, property);
+
+        Assert.True(processor.CanProcess(call));
+        processor.Process(call);
+
+        // Should add a where action, but the action should represent an always-false condition
+        context.Received().AddWhereAction(Arg.Any<Action<WhereParameters>>());
+
+        // Test with empty HashSet<string>
+        var emptySet = new HashSet<string>();
+        var stringProperty = Expression.Property(param, nameof(TestClass.Name));
+        var containsStringMethod = typeof(HashSet<string>).GetMethod("Contains", new[] { typeof(string) });
+        var callString = Expression.Call(Expression.Constant(emptySet, typeof(HashSet<string>)), containsStringMethod!, stringProperty);
+
+        Assert.True(processor.CanProcess(callString));
+        processor.Process(callString);
+
+        context.Received(2).AddWhereAction(Arg.Any<Action<WhereParameters>>());
+    }
+
+    [Theory]
+    [InlineData(typeof(HashSet<int>))]
+    [InlineData(typeof(Queue<int>))]
+    [InlineData(typeof(Stack<int>))]
+    public void MethodCallProcessor_ShouldSupportVariousCollectionTypes(Type collectionType)
+    {
+        // Arrange
+        var context = Substitute.For<IExpressionContext>();
+        var processor = new MethodCallExpressionProcessor(context);
+
+        // Create a strongly-typed List<T> to use for .Contains()
+        var elementType = collectionType.GetGenericArguments()[0];
+        var listType = typeof(List<>).MakeGenericType(elementType);
+        var list = Activator.CreateInstance(listType);
+        var addMethod = listType.GetMethod("Add");
+        var value = elementType.IsValueType ? Activator.CreateInstance(elementType) : null;
+
+        if (addMethod != null)
+        {
+            var paramValue = value;
+            if (paramValue == null && elementType == typeof(string))
+            {
+                paramValue = "test";
+            }
+            addMethod.Invoke(list, new[] { paramValue });
+        }
+
+        // Build a .Contains() expression using the strongly-typed List<T>
+        var param = Expression.Parameter(typeof(LogicalExpressionProcessorTests.TestClass), "x");
+        var property = Expression.Property(param, nameof(LogicalExpressionProcessorTests.TestClass.Age));
+        var containsMethod = listType.GetMethod("Contains");
+        var call = Expression.Call(Expression.Constant(list), containsMethod!, property);
+
+        // Act & Assert
+        Assert.True(processor.CanProcess(call));
+        processor.Process(call);
+        context.Received().AddWhereAction(Arg.Any<Action<WhereParameters>>());
+    }
+
     private class TestClass
     {
         public string Name { get; set; } = string.Empty;

@@ -16,7 +16,7 @@
 ## Project Architecture
 
 ### Three-Context Library
-This library extends Kentico Xperience with three specialized contexts:
+This library extends Xperience by Kentico with three specialized contexts:
 - `IContentItemContext<T>` - Content hub items (`T : IContentItemFieldsSource`)
 - `IPageContentContext<T>` - Web pages (`T : IWebPageFieldsSource`) 
 - `IReusableSchemaContext<T>` - Reusable schemas (no constraints)
@@ -40,7 +40,7 @@ Access via unified factory: `IXperienceDataContext`
 ### Kentico Integration
 - Use `IContentQueryExecutor` for queries
 - Leverage `IProgressiveCache` for caching
-- Follow content type patterns: `IContentItemFieldsSource`, `IWebPageFieldsSource`, `IReusableFieldsSource`
+- Follow content type patterns: `IContentItemFieldsSource`, amd `IWebPageFieldsSource`
 - Register via DI: `services.AddXperienceDataContext()`
 
 ### Performance & Caching
