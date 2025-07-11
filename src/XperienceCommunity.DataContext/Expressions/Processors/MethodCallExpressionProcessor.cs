@@ -21,6 +21,9 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
     {
         if (node is not MethodCallExpression methodCallExpression)
             return false;
+        
+        if (!IsSupportedMethodName(methodCallExpression.Method.Name))
+            return false;
 
         var declaringType = methodCallExpression.Method.DeclaringType;
 
@@ -64,6 +67,13 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
 
     private static bool IsSupportedQueryableMethod(Type? declaringType)
         => declaringType == typeof(Queryable);
+
+    private static bool IsSupportedMethodName(string methodName)
+        => methodName == nameof(string.Contains) ||
+           methodName == nameof(string.StartsWith) ||
+           methodName == nameof(Enumerable.Contains) ||
+           methodName == nameof(Queryable.Where) ||
+           methodName == nameof(Queryable.Select);
 
     private static bool IsSupportedInstanceContains(MethodCallExpression node)
     {
