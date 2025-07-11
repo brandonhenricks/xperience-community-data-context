@@ -18,10 +18,4 @@ public interface IReusableSchemaContext<T> : IDataContext<T>
     /// <returns>The data context with web page data included.</returns>
     IDataContext<T> WithWebPageData();
 
-    /// <summary>
-    /// Specifies the reusable schemas to include in the data context.
-    /// </summary>
-    /// <param name="schemaNames">The names of the reusable schemas.</param>
-    /// <returns>The data context with the specified reusable schemas included.</returns>
-    IDataContext<T> WithReusableSchemas(params string[] schemaNames);
 }

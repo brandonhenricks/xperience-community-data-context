@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using CMS.ContentEngine;
 using CMS.DataEngine;
 using CMS.Helpers;
+using CMS.Websites;
 using CMS.Websites.Routing;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Configurations;
@@ -19,7 +20,6 @@ namespace XperienceCommunity.DataContext.Contexts;
 /// <typeparam name="T">The type of the reusable schema content.</typeparam>
 public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchemaExecutor<T>>, IReusableSchemaContext<T>
 {
-    private HashSet<string>? _schemaNames;
     private bool? _withContentFields;
     private bool? _withPageData;
 
@@ -45,17 +45,6 @@ public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchema
         return this;
     }
 
-    /// <inheritdoc />
-    [return: NotNull]
-    public IDataContext<T> WithReusableSchemas(params string[] schemaNames)
-    {
-        _schemaNames ??= new HashSet<string>();
-        foreach (var schemaName in schemaNames)
-        {
-            _schemaNames.Add(schemaName);
-        }
-        return this;
-    }
 
     [return: NotNull]
     public IDataContext<T> WithWebPageData()
@@ -87,47 +76,55 @@ public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchema
                     subQuery.WithContentTypeFields();
                 }
 
+                if (_withPageData == true)
+                {
+                    subQuery.WithWebPageData();
+                }
+
                 if (_linkedItemsDepth.HasValue)
                 {
                     subQuery.WithLinkedItems(_linkedItemsDepth.Value);
                 }
-                
-            }).Parameters(p =>
-            {
-                if (topN.HasValue)
-                {
-                    p.TopN(topN.Value);
-                }
 
-                if (_columnNames?.Count > 0)
-                {
-                    p.Columns(_columnNames.ToArray());
-                }
-
-                if (_includeTotalCount.HasValue)
-                {
-                    p.IncludeTotalCount();
-                }
-
-                if (_offset is { Item1: not null, Item2: not null })
-                {
-                    p.Offset(_offset.Item1.Value, _offset.Item2.Value);
-                }
-
-                var context = new ExpressionContext();
-
-                var visitor = new ContentItemQueryExpressionVisitor(context);
-
-                visitor.Visit(expression);
-
-                foreach (var whereAction in context.WhereActions)
-                {
-                    p.Where(whereAction);
-                }
-
-                _parameters = [.. context.Parameters.Select(px => new KeyValuePair<string, object?>(px.Key, px.Value))];
             });
         }
+
+        queryBuilder.Parameters(p =>
+        {
+
+            if (topN.HasValue)
+            {
+                p.TopN(topN.Value);
+            }
+
+            if (_columnNames?.Count > 0)
+            {
+                p.Columns(_columnNames.ToArray());
+            }
+
+            if (_includeTotalCount.HasValue)
+            {
+                p.IncludeTotalCount();
+            }
+
+            if (_offset is { Item1: not null, Item2: not null })
+            {
+                p.Offset(_offset.Item1.Value, _offset.Item2.Value);
+            }
+
+            var context = new ExpressionContext();
+
+            var visitor = new ContentItemQueryExpressionVisitor(context);
+
+            visitor.Visit(expression);
+
+            foreach (var whereAction in context.WhereActions)
+            {
+                p.Where(whereAction);
+            }
+
+            _parameters = [.. context.Parameters.Select(px => new KeyValuePair<string, object?>(px.Key, px.Value))];
+        });
 
         if (!string.IsNullOrEmpty(_language))
         {
