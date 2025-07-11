@@ -42,38 +42,83 @@ internal sealed class LogicalExpressionProcessor : IExpressionProcessor<BinaryEx
             throw new UnsupportedExpressionException(node.NodeType, node);
 
         var logicalOperator = _isAnd ? "AND" : "OR";
-
-        // Push logical grouping for proper SQL generation
         _context.PushLogicalGrouping(logicalOperator);
 
+        var shortCircuited = false;
         try
         {
-            // Process left operand
-            ProcessOperand(node.Left, isFirstOperand: true);
-
-            // Add the logical operator
-            _context.AddWhereAction(w =>
+            // Short-circuiting for boolean constants
+            if (TryShortCircuit(node.Left, node.Right, isLeft: true))
             {
-                if (_isAnd)
-                    w.And();
-                else
-                    w.Or();
-            });
+                shortCircuited = true;
+                return;
+            }
+            if (TryShortCircuit(node.Right, node.Left, isLeft: false))
+            {
+                shortCircuited = true;
+                return;
+            }
 
-            // Process right operand
+            ProcessOperand(node.Left, isFirstOperand: true);
+            _context.AddWhereAction(w => { if (_isAnd) w.And(); else w.Or(); });
             ProcessOperand(node.Right, isFirstOperand: false);
         }
         catch (Exception ex) when (!(ex is UnsupportedExpressionException || ex is InvalidExpressionFormatException))
         {
-            // Pop the logical grouping if an error occurs to maintain context consistency
-            _context.PopLogicalGrouping();
-            throw new ExpressionProcessingException($"Failed to process logical expression: {ex.Message}", ex);
+            throw new ExpressionProcessingException($"Failed to process logical expression: {ex.Message}", node, ex);
         }
+        finally
+        {
+            // Always pop the logical grouping to prevent memory leaks
+            _context.PopLogicalGrouping();
+        }
+    }
+
+    // Implements true short-circuiting for boolean constants
+    private bool TryShortCircuit(Expression first, Expression second, bool isLeft)
+    {
+        if (first is ConstantExpression constantExpression && constantExpression.Type == typeof(bool))
+        {
+            var boolValue = (bool)constantExpression.Value!;
+            if (_isAnd)
+            {
+                if (!boolValue)
+                {
+                    // false && X => always false
+                    // Ensure parameters for member expressions are still added
+                    if (second is MemberExpression memberExpression)
+                    {
+                        ProcessMemberExpression(memberExpression);
+                    }
+                    _context.AddWhereAction(w => w.WhereEquals("1", 0));
+                    return true;
+                }
+                // true && X => just process X
+                ProcessOperand(second, isFirstOperand: !isLeft);
+                return true;
+            }
+            else
+            {
+                if (boolValue)
+                {
+                    // true || X => always true
+                    if (second is MemberExpression memberExpression)
+                    {
+                        ProcessMemberExpression(memberExpression);
+                    }
+                    _context.AddWhereAction(w => w.WhereEquals("1", 1));
+                    return true;
+                }
+                // false || X => just process X
+                ProcessOperand(second, isFirstOperand: !isLeft);
+                return true;
+            }
+        }
+        return false;
     }
 
     private void ProcessOperand(Expression operand, bool isFirstOperand)
     {
-        // Handle different types of operands
         switch (operand)
         {
             case ConstantExpression constantExpression when constantExpression.Type == typeof(bool):
@@ -97,7 +142,6 @@ internal sealed class LogicalExpressionProcessor : IExpressionProcessor<BinaryEx
                 break;
 
             default:
-                // Try to use the visit function if provided, otherwise throw
                 if (_visitFunction != null)
                 {
                     _visitFunction(operand);
@@ -114,48 +158,52 @@ internal sealed class LogicalExpressionProcessor : IExpressionProcessor<BinaryEx
     {
         var boolValue = (bool)constantExpression.Value!;
 
-        // For boolean constants in logical expressions, we can optimize:
-        // - true && X => X
-        // - false && X => false
-        // - true || X => true
-        // - false || X => X
-
         if (_isAnd)
         {
-            if (!boolValue) // false && X => always false
+            if (!boolValue)
             {
-                _context.AddWhereAction(w => w.WhereEquals("1", 0)); // Always false condition
+                _context.AddWhereAction(w => w.WhereEquals("1", 0));
             }
-            // true && X => just process X (no additional condition needed for true)
         }
-        else // OR operation
+        else
         {
-            if (boolValue) // true || X => always true
+            if (boolValue)
             {
-                _context.AddWhereAction(w => w.WhereEquals("1", 1)); // Always true condition
+                _context.AddWhereAction(w => w.WhereEquals("1", 1));
             }
-            // false || X => just process X (no additional condition needed for false)
         }
     }
 
     private void ProcessMemberExpression(MemberExpression memberExpression)
     {
-        // For boolean member expressions like x.IsActive
         if (memberExpression.Type == typeof(bool))
         {
-            var paramName = memberExpression.Member.Name;
+            // Use full member access chain for parameter name to avoid collisions
+            var memberNames = GetMemberAccessChain(memberExpression);
+            var paramName = string.Join("_", memberNames);
             _context.AddParameter(paramName, true);
             _context.AddWhereAction(w => w.WhereEquals(paramName, true));
         }
         else
         {
-            throw new InvalidExpressionFormatException($"Member expression '{memberExpression.Member.Name}' must be of type bool for logical operations.");
+            throw new InvalidExpressionFormatException($"Member expression '{memberExpression.Member.Name}' must be of type bool for logical operations.", memberExpression);
         }
+    }
+
+    private static List<string> GetMemberAccessChain(MemberExpression memberExpression)
+    {
+        var members = new List<string>();
+        Expression? current = memberExpression;
+        while (current is MemberExpression m)
+        {
+            members.Insert(0, m.Member.Name);
+            current = m.Expression;
+        }
+        return members;
     }
 
     private void ProcessBinaryExpression(BinaryExpression binaryExpression)
     {
-        // Delegate to visit function if available, otherwise throw
         if (_visitFunction != null)
         {
             _visitFunction(binaryExpression);
@@ -168,7 +216,6 @@ internal sealed class LogicalExpressionProcessor : IExpressionProcessor<BinaryEx
 
     private void ProcessUnaryExpression(UnaryExpression unaryExpression)
     {
-        // Delegate to visit function if available, otherwise throw
         if (_visitFunction != null)
         {
             _visitFunction(unaryExpression);
@@ -181,7 +228,6 @@ internal sealed class LogicalExpressionProcessor : IExpressionProcessor<BinaryEx
 
     private void ProcessMethodCallExpression(MethodCallExpression methodCallExpression)
     {
-        // Delegate to visit function if available, otherwise throw
         if (_visitFunction != null)
         {
             _visitFunction(methodCallExpression);
@@ -196,24 +242,32 @@ internal sealed class LogicalExpressionProcessor : IExpressionProcessor<BinaryEx
     {
         return expression switch
         {
-            ConstantExpression constantExpression => constantExpression.Type == typeof(bool),
-            MemberExpression memberExpression => memberExpression.Type == typeof(bool) ||
-                                                 CanBeProcessedAsBinaryExpression(memberExpression),
-            BinaryExpression => true, // Binary expressions can be processed recursively
-            UnaryExpression => true,  // Unary expressions can be processed
-            MethodCallExpression => true, // Method calls can be processed
+            ConstantExpression constantExpression => IsSupportedType(constantExpression.Type),
+            MemberExpression memberExpression => IsSupportedType(memberExpression.Type),
+            BinaryExpression => true,
+            UnaryExpression => true,
+            MethodCallExpression => true,
             _ => false
         };
     }
 
-    private static bool CanBeProcessedAsBinaryExpression(MemberExpression memberExpression)
+    private static bool IsSupportedType(Type type)
     {
-        // Check if this member expression is likely to be part of a comparison
-        // This is a heuristic - in practice, the actual processing will validate this
-        return memberExpression.Type.IsPrimitive ||
-               memberExpression.Type == typeof(string) ||
-               memberExpression.Type == typeof(DateTime) ||
-               memberExpression.Type == typeof(Guid) ||
-               Nullable.GetUnderlyingType(memberExpression.Type) != null;
+        // Add more supported types as needed
+        return type == typeof(bool)
+            || type == typeof(string)
+            || type == typeof(Guid)
+            || type == typeof(DateTime)
+            || type == typeof(int)
+            || type == typeof(long)
+            || type == typeof(double)
+            || type == typeof(decimal)
+            || type == typeof(float)
+            || type == typeof(short)
+            || type == typeof(byte)
+            || type == typeof(uint)
+            || type == typeof(ulong)
+            || type == typeof(ushort)
+            || type == typeof(sbyte);
     }
 }
