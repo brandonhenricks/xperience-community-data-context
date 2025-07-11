@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -22,8 +22,8 @@ public static class DataContextDiagnostics
     /// <summary>
     /// Gets or sets whether diagnostics are enabled.
     /// </summary>
-    public static bool DiagnosticsEnabled 
-    { 
+    public static bool DiagnosticsEnabled
+    {
         get => _diagnosticsEnabled;
         set => _diagnosticsEnabled = value;
     }
@@ -31,8 +31,8 @@ public static class DataContextDiagnostics
     /// <summary>
     /// Gets or sets the minimum trace level for diagnostic output.
     /// </summary>
-    public static LogLevel TraceLevel 
-    { 
+    public static LogLevel TraceLevel
+    {
         get => _traceLevel;
         set => _traceLevel = value;
     }
@@ -41,13 +41,13 @@ public static class DataContextDiagnostics
     /// Gets a readonly collection of diagnostic entries.
     /// </summary>
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public static IReadOnlyList<DiagnosticEntry> DiagnosticEntries 
+    public static IReadOnlyList<DiagnosticEntry> DiagnosticEntries
     {
         get
         {
             lock (_logLock)
             {
-                return _diagnosticLog.ToArray();
+                return [.. _diagnosticLog];
             }
         }
     }
@@ -89,7 +89,7 @@ public static class DataContextDiagnostics
         lock (_logLock)
         {
             _diagnosticLog.Add(entry);
-            
+
             // Keep only the last 1000 entries to prevent memory leaks
             if (_diagnosticLog.Count > 1000)
             {
@@ -182,52 +182,4 @@ public static class DataContextDiagnostics
             };
         }
     }
-}
-
-/// <summary>
-/// Represents a single diagnostic entry.
-/// </summary>
-[DebuggerDisplay("{Level} [{Category}] {Message} @ {MemberName}")]
-[Description("Individual diagnostic log entry with context information")]
-public sealed class DiagnosticEntry
-{
-    /// <summary>
-    /// Gets or sets the timestamp when the entry was created.
-    /// </summary>
-    public DateTime Timestamp { get; set; }
-
-    /// <summary>
-    /// Gets or sets the diagnostic category.
-    /// </summary>
-    public string Category { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the diagnostic message.
-    /// </summary>
-    public string Message { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the log level.
-    /// </summary>
-    public LogLevel Level { get; set; }
-
-    /// <summary>
-    /// Gets or sets the calling member name.
-    /// </summary>
-    public string? MemberName { get; set; }
-
-    /// <summary>
-    /// Gets or sets the source file path.
-    /// </summary>
-    public string? SourceFilePath { get; set; }
-
-    /// <summary>
-    /// Gets or sets the source line number.
-    /// </summary>
-    public int SourceLineNumber { get; set; }
-
-    /// <summary>
-    /// Gets or sets the thread ID where the entry was created.
-    /// </summary>
-    public int ThreadId { get; set; }
 }

@@ -1,4 +1,5 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using CMS.ContentEngine;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Abstractions.Processors;
 using XperienceCommunity.DataContext.Exceptions;
@@ -38,6 +39,7 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
         }
 
         var rangeInfo = ExtractRangeInfo(node);
+
         if (rangeInfo == null)
         {
             // Fall back to normal processing
@@ -84,7 +86,7 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
         return binary.Left as MemberExpression ?? binary.Right as MemberExpression;
     }
 
-    private RangeInfo? ExtractRangeInfo(BinaryExpression node)
+    private static RangeInfo? ExtractRangeInfo(BinaryExpression node)
     {
         if (node.Left is not BinaryExpression leftComp || node.Right is not BinaryExpression rightComp)
             return null;
@@ -197,7 +199,7 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
                 // Try to use WhereBetween if available in Kentico
                 if (TryUseBetween(w, rangeInfo))
                     return;
-
+                
                 // Fallback to separate comparisons
                 UseSeparateComparisons(w, rangeInfo);
             }
@@ -229,7 +231,7 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
         return false;
     }
 
-    private static void UseSeparateComparisons(dynamic w, RangeInfo rangeInfo)
+    private static void UseSeparateComparisons(WhereParameters w, RangeInfo rangeInfo)
     {
         // Create separate comparison operations
         if (rangeInfo.IsMinInclusive)

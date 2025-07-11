@@ -13,7 +13,7 @@ namespace XperienceCommunity.DataContext.Contexts;
 [DebuggerDisplay("Parameters: {Parameters.Count}, Members: {CurrentMemberPath}, WhereActions: {WhereActions.Count}, Groupings: {LogicalGroupings.Count}")]
 [DebuggerTypeProxy(typeof(ExpressionContextDebugView))]
 [Description("Context for building and evaluating LINQ expressions during query translation")]
-public sealed class ExpressionContext: IExpressionContext
+public sealed class ExpressionContext : IExpressionContext
 {
     private readonly Dictionary<string, object?> _parameters = new();
     private readonly Stack<string> _memberAccessChain = new();
@@ -28,12 +28,12 @@ public sealed class ExpressionContext: IExpressionContext
     /// <summary>
     /// Gets the current member/property access chain.
     /// </summary>
-    public IReadOnlyCollection<string> MemberAccessChain => _memberAccessChain.ToArray();
+    public IReadOnlyCollection<string> MemberAccessChain => [.. _memberAccessChain];
 
     /// <summary>
     /// Gets the current logical groupings (AND/OR nesting).
     /// </summary>
-    public IReadOnlyCollection<string> LogicalGroupings => _logicalGroupings.ToArray();
+    public IReadOnlyCollection<string> LogicalGroupings => [.. _logicalGroupings];
 
     /// <summary>
     /// Gets the intermediate query fragments or builder state.
@@ -128,8 +128,8 @@ internal sealed class ExpressionContextDebugView
     public int WhereActionCount => _context.WhereActions.Count;
 
     public string CurrentMemberPath => string.Join(".", _context.MemberAccessChain.Reverse());
-    
+
     public bool HasActiveGroupings => _context.LogicalGroupings.Count > 0;
-    
+
     public bool HasParameters => _context.Parameters.Count > 0;
 }
