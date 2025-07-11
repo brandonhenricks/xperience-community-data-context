@@ -21,7 +21,7 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
     {
         if (node is not MethodCallExpression methodCallExpression)
             return false;
-        
+
         if (!IsSupportedMethodName(methodCallExpression.Method.Name))
             return false;
 
@@ -253,7 +253,7 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
         // For Select operations, we mainly care about what properties are being selected
         // This affects the column selection in the query
         _context.PushMember(lambda.Parameters[0].Name ?? "x");
-        
+
         // Process the selector body to understand what's being selected
         if (lambda.Body is MemberExpression memberSelector)
         {
@@ -271,7 +271,7 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
                 }
             }
         }
-        
+
         _context.PopMember();
     }
 
@@ -335,9 +335,12 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
         if (node.Arguments[0] is ConstantExpression constant)
         {
             var value = constant.Value;
+
             _context.AddParameter(memberName, value);
+
             // Note: WhereEndsWith may not exist in Kentico's WhereParameters
             // Using WhereContains as a fallback or implement custom logic
+
             _context.AddWhereAction(w => w.WhereContains(memberName, value?.ToString()));
         }
         else
@@ -352,9 +355,8 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
             throw new InvalidExpressionFormatException("String.IsNullOrEmpty expects one argument.");
 
         var memberName = ExtractMemberName(node.Arguments[0]);
-        // Note: WhereNull may not exist in Kentico's WhereParameters
-        // Using WhereEquals with null as a fallback
-        _context.AddWhereAction(w => w.WhereEquals(memberName, null).Or().WhereEquals(memberName, string.Empty));
+
+        _context.AddWhereAction(w => w.WhereNull(memberName).Or().WhereEmpty(memberName));
     }
 
     private void ProcessStringIsNullOrWhiteSpace(MethodCallExpression node)
@@ -363,9 +365,8 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
             throw new InvalidExpressionFormatException("String.IsNullOrWhiteSpace expects one argument.");
 
         var memberName = ExtractMemberName(node.Arguments[0]);
-        // Note: WhereNull may not exist in Kentico's WhereParameters
-        // Using WhereEquals with null as a fallback
-        _context.AddWhereAction(w => w.WhereEquals(memberName, null).Or().WhereEquals(memberName, string.Empty).Or().WhereEquals(memberName, " "));
+
+        _context.AddWhereAction(w => w.WhereNull(memberName).Or().WhereEmpty(memberName).Or().WhereEquals(memberName, " "));
     }
 
     private void ProcessStringCaseConversion(MethodCallExpression node)
@@ -375,6 +376,7 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
             throw new InvalidExpressionFormatException("String case conversion expects an object.");
 
         var memberName = ExtractMemberName(node.Object);
+
         _context.PushMember(memberName);
     }
 
@@ -394,12 +396,14 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
         if (node.Arguments.Count == 1)
         {
             // Any() without predicate - check if collection has any items
+
             var collectionExpr = node.Arguments[0];
+
             if (collectionExpr is MemberExpression memberExpr)
             {
                 var memberName = ExtractMemberName(memberExpr);
                 // Use a not-null/empty check for the collection member
-                _context.AddWhereAction(w => w.WhereNotEquals(memberName, null));
+                _context.AddWhereAction(w => w.WhereNotNull(memberName));
             }
             else if (collectionExpr is ConstantExpression constantExpr)
             {
@@ -472,20 +476,23 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
             case nameof(DateTime.AddYears):
                 ProcessDateTimeAddition(node);
                 break;
+
             case "get_Date":
                 ProcessDateTimeDate(node);
                 break;
+
             case "get_Year":
             case "get_Month":
             case "get_Day":
                 ProcessDateTimeComponents(node);
                 break;
+
             default:
                 throw new NotSupportedException($"DateTime method '{node.Method.Name}' is not supported.");
         }
     }
 
-    private void ProcessDateTimeAddition(MethodCallExpression node)
+    private static void ProcessDateTimeAddition(MethodCallExpression node)
     {
         if (node.Object == null || node.Arguments.Count != 1)
             throw new InvalidExpressionFormatException($"DateTime.{node.Method.Name} expects one argument.");
@@ -496,7 +503,7 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
         throw new NotSupportedException($"DateTime.{node.Method.Name} requires database-specific date arithmetic which is not currently implemented.");
     }
 
-    private void ProcessDateTimeDate(MethodCallExpression node)
+    private static void ProcessDateTimeDate(MethodCallExpression node)
     {
         if (node.Object == null)
             throw new InvalidExpressionFormatException("DateTime.Date expects an object.");
@@ -506,7 +513,7 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
         throw new NotSupportedException("DateTime.Date requires database-specific date functions which are not currently implemented.");
     }
 
-    private void ProcessDateTimeComponents(MethodCallExpression node)
+    private static void ProcessDateTimeComponents(MethodCallExpression node)
     {
         if (node.Object == null)
             throw new InvalidExpressionFormatException($"DateTime.{node.Method.Name} expects an object.");
@@ -527,6 +534,7 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
             case nameof(Math.Ceiling):
                 ProcessMathOperations(node);
                 break;
+
             default:
                 throw new NotSupportedException($"Math method '{node.Method.Name}' is not supported.");
         }
@@ -589,11 +597,11 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
     private void AddWhereInTyped(string paramName, object? collectionValue, Type? declaredCollectionType = null)
     {
         _context.AddParameter(paramName, collectionValue);
-        
+
         if (collectionValue is System.Collections.IEnumerable enumerable)
         {
             var values = enumerable.Cast<object>().ToArray();
-            
+
             if (values.Length == 0)
             {
                 // Empty collection - will never match
@@ -607,7 +615,8 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
             else
             {
                 // Multiple values - chain OR conditions
-                _context.AddWhereAction(w => {
+                _context.AddWhereAction(w =>
+                {
                     for (int i = 0; i < values.Length; i++)
                     {
                         if (i == 0)
@@ -701,5 +710,4 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
             _ => throw new InvalidExpressionFormatException($"Cannot extract member name from expression type {expression.GetType().Name}.")
         };
     }
-
 }
