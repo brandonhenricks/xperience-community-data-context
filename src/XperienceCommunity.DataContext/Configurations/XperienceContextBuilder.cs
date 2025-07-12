@@ -17,6 +17,9 @@ public sealed class XperienceContextBuilder
     {
         _services = services;
         _config = new XperienceDataContextConfig();
+        
+        // Register the default config (can be overridden by SetCacheTimeout)
+        _services.AddSingleton(_config);
     }
 
     /// <summary>
@@ -56,6 +59,13 @@ public sealed class XperienceContextBuilder
     {
         _config.CacheTimeOut = timeoutInMinutes;
 
+        // Remove any existing config registration and add the updated one
+        var existingDescriptor = _services.FirstOrDefault(d => d.ServiceType == typeof(XperienceDataContextConfig));
+        if (existingDescriptor != null)
+        {
+            _services.Remove(existingDescriptor);
+        }
+        
         _services.AddSingleton(_config);
 
         return this;
