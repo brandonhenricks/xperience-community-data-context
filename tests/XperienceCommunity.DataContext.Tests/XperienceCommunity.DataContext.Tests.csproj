@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="C:\GitHub\xperience-community-data-context\tests\\README.md" />
+    <None Remove="README.md" />
   </ItemGroup>
 
   <ItemGroup>
