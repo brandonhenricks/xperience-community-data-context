@@ -232,7 +232,7 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
         {
             switch (firstValue)
             {
-                case int:
+                case int when values.All(v => v is int):
                     var intValues = values.Cast<int>().ToList();
                     if (isNegated)
                     {
@@ -245,7 +245,7 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
                     }
                     return true;
 
-                case string:
+                case string when values.All(v => v is string):
                     var stringValues = values.Cast<string>().ToList();
                     if (isNegated)
                     {
@@ -257,7 +257,7 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
                     }
                     return true;
 
-                case Guid:
+                case Guid when values.All(v => v is Guid):
                     var guidValues = values.Cast<Guid>().ToList();
                     if (isNegated)
                     {
