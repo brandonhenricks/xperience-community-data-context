@@ -84,27 +84,43 @@ To integrate XperienceCommunity.DataContext into your Kentico Xperience project,
    ```
 
 2. **Configure Services:**
-   - In your `Program.cs` or `Startup.cs` file, add the following line to register XperienceCommunity.DataContext services with dependency injection:
 
-```csharp
-// In Program.cs (minimal hosting model)
-builder.Services.AddXperienceDataContext();
+   **Prerequisites**: Ensure Xperience by Kentico services are registered first:
 
-// Or in Startup.cs
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddXperienceDataContext();
-}
+   ```csharp
+   // Required Kentico services (typically already configured in Xperience projects)
+   builder.Services.AddKentico();
+   builder.Services.AddKenticoFeatures();
+   ```
 
-// Optional: Configure cache timeout
-services.AddXperienceDataContext(cacheInMinutes: 30);
-```
+   **Register XperienceCommunity.DataContext:**
+
+   ```csharp
+   // Method 1: Simple registration with optional cache timeout
+   builder.Services.AddXperienceDataContext(cacheInMinutes: 30);
+
+   // Method 2: Fluent builder with processors
+   builder.Services.AddXperienceDataContext()
+       .AddContentItemProcessor<BlogPost, BlogPostProcessor>()
+       .AddPageContentProcessor<LandingPage, LandingPageProcessor>()
+       .SetCacheTimeout(30);
+
+   // Method 3: Basic registration (uses default 15-minute cache)
+   builder.Services.AddXperienceDataContext();
+   ```
+
+   **Required Dependencies**: The library depends on these Kentico services being available:
+   - `IProgressiveCache` - For caching query results
+   - `IWebsiteChannelContext` - For channel and preview context
+   - `IContentQueryExecutor` - For executing Kentico content queries
+
+   These are automatically provided when you call `AddKentico()` in a standard Xperience by Kentico project.
 
 ## Injecting the `IContentItemContext` into a Class
 
 To leverage the `IContentItemContext` in your classes, you need to inject it via dependency injection. The `IContentItemContext` requires a class that implements the `IContentItemFieldSource` interface. For instance, you might have a `GenericContent` class designed for the Content Hub.
 
-### Querying Content Items Example:
+### Querying Content Items Example
 
 Assuming you have a `GenericContent` class that implements `IContentItemFieldSource`, you can inject the `IContentItemContext<GenericContent>` into your classes as follows:
 
@@ -141,7 +157,7 @@ var result = await _context
 
 This example demonstrates how to asynchronously retrieve the first content item that matches a given GUID, with a single level of linked items included, using the fluent API provided by XperienceCommunity.DataContext.
 
-### Querying Page Content Example:
+### Querying Page Content Example
 
 Assuming you have a `GenericPage` class that implements `IWebPageFieldsSource`, you can inject the `IPageContentContext<GenericPage>` into your classes as follows:
 
@@ -490,7 +506,7 @@ var context = dataContext.ForContentType<BlogPost>()
 Console.WriteLine(context.ToDebugString());
 ```
 
-**📖 For comprehensive debugging guidance, see [Debugging Guide](docs/Debugging-Guide.md)**
+**For comprehensive debugging guidance, see [Debugging Guide](docs/Debugging-Guide.md)**
 
 ## Troubleshooting & Best Practices
 

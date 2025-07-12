@@ -15,7 +15,7 @@ public static class DependencyInjection
     /// Adds the XperienceDataContext services to the specified <see cref="IServiceCollection"/>.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    /// <param name="cacheInMinutes"></param>
+    /// <param name="cacheInMinutes">The cache timeout in minutes.</param>
     /// <returns>The <see cref="IServiceCollection"/>.</returns>
     public static IServiceCollection AddXperienceDataContext(this IServiceCollection services, int? cacheInMinutes)
     {
@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IXperienceDataContext, XperienceDataContext>();
         services.AddScoped(typeof(ContentQueryExecutor<>));
         services.AddScoped(typeof(PageContentQueryExecutor<>));
+        services.AddScoped(typeof(ReusableSchemaExecutor<>));
 
         var config = new XperienceDataContextConfig();
 
@@ -51,6 +52,7 @@ public static class DependencyInjection
         services.AddScoped<IXperienceDataContext, XperienceDataContext>();
         services.AddScoped(typeof(ContentQueryExecutor<>));
         services.AddScoped(typeof(PageContentQueryExecutor<>));
+        services.AddScoped(typeof(ReusableSchemaExecutor<>));
 
         return new XperienceContextBuilder(services);
     }
