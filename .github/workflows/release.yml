@@ -1,34 +1,150 @@
-name: Nuget Release
+name: NuGet Release
+
 permissions:
-  contents: read
+  contents: write
+  id-token: write
 
 on:
   push:
     tags:
-    - "v[0-9]+.[0-9]+.[0-9]+"
+    - "v[0-9]+.[0-9]+.[0-9]+*"  # Supports v1.2.3, v1.2.3-alpha, etc.
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to Release and the tag of the commit (e.g., 1.2.3)'
+        required: true
+        type: string
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for proper version detection
+    
     - name: Verify commit exists in origin/master
       run: |
         git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
         git branch --remote --contains | grep origin/master
-    - name: Set VERSION variable from tag
-      run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+    
+    - name: Set VERSION variable
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+        else
+          echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+        fi
+    
+    - name: Verify Version Setting
+      run: |
+        echo "Event name: ${{ github.event_name }}"
+        echo "GitHub ref: ${{ github.ref }}"
+        echo "Set VERSION: ${VERSION}"
+        
+        # Validate version format
+        if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
+          echo "Error: Invalid version format '${VERSION}'. Expected format: x.y.z or x.y.z-suffix"
+          exit 1
+        fi
+        
+        echo "✅ Version '${VERSION}' is valid and will be used for package versioning"
+    
+    - name: Generate Release Notes
+      id: release_notes
+      run: |
+        # Get commits associated with the current tag/version
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          # For manual dispatch, get recent commits (last 10 commits)
+          RELEASE_NOTES=$(git log --pretty=format:"- %s (%h)" -n 10)
+        else
+          # For tag-based releases, get commits from the tag
+          TAG_COMMIT=$(git rev-list -n 1 ${{ github.ref }})
+          
+          # Check if this is a merge commit (typical for PR merges)
+          if git cat-file -p $TAG_COMMIT | grep -q "^parent.*parent"; then
+            # It's a merge commit - get the commits from the merged branch
+            MERGE_BASE=$(git merge-base $TAG_COMMIT~1 $TAG_COMMIT~2 2>/dev/null || echo "")
+            if [ -n "$MERGE_BASE" ]; then
+              # Get commits from the feature branch that was merged
+              RELEASE_NOTES=$(git log --pretty=format:"- %s (%h)" $MERGE_BASE..$TAG_COMMIT~2 2>/dev/null || git log --pretty=format:"- %s (%h)" -n 5 $TAG_COMMIT)
+            else
+              # Fallback: get commits from the tag commit
+              RELEASE_NOTES=$(git log --pretty=format:"- %s (%h)" -n 5 $TAG_COMMIT)
+            fi
+          else
+            # Single commit tag - just get that commit and a few recent ones
+            RELEASE_NOTES=$(git log --pretty=format:"- %s (%h)" -n 5 $TAG_COMMIT)
+          fi
+        fi
+        
+        # Clean up and format release notes
+        if [ -z "$RELEASE_NOTES" ]; then
+          RELEASE_NOTES="- Version ${VERSION} release"
+        fi
+        
+        # Save to file and environment
+        echo "$RELEASE_NOTES" > release_notes.txt
+        echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+        echo "$RELEASE_NOTES" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        
+        echo "Generated release notes for tag/version:"
+        cat release_notes.txt
+    
+    - name: Setup .NET 9.x
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x    
+        dotnet-version: '9.0.x'
+    
     - name: Restore Project Dependencies
-      run: dotnet restore  
+      run: dotnet restore
+    
     - name: Build Project
-      run: dotnet build --no-restore --configuration Release /p:Version=${VERSION}
+      run: dotnet build --no-restore --configuration Release /p:Version=${VERSION} /p:PackageReleaseNotes="${RELEASE_NOTES}"
+    
+    - name: Run Tests
+      run: dotnet test --no-build --configuration Release --verbosity normal
+    
     - name: Pack Project
-      run: dotnet pack --configuration Release /p:Version=${VERSION} --no-build --output .
-    - name: Push Project to Nuget
-      run: dotnet nuget push XperienceCommunity.DataContext.${VERSION}.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet pack --configuration Release /p:Version=${VERSION} /p:PackageReleaseNotes="${RELEASE_NOTES}" --no-build --output ./artifacts
+    
+    - name: Verify Package Version
+      run: |
+        PACKAGE_PATH=$(find ./artifacts -name "*.nupkg" | head -1)
+        if [ -z "$PACKAGE_PATH" ]; then
+          echo "Error: No package file found"
+          exit 1
+        fi
+        
+        echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
+        
+        # Extract the version from the package filename
+        PACKAGE_NAME=$(basename "$PACKAGE_PATH")
+        EXTRACTED_VERSION=$(echo "$PACKAGE_NAME" | sed -n 's/.*\.\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*.*\)\.nupkg$/\1/p')
+        
+        echo "Package file: $PACKAGE_NAME"
+        echo "Expected version: ${VERSION}"
+        echo "Extracted version: $EXTRACTED_VERSION"
+        
+        # Verify the version matches
+        if [ "$EXTRACTED_VERSION" != "${VERSION}" ]; then
+          echo "❌ Error: Package version mismatch!"
+          echo "   Expected: ${VERSION}"
+          echo "   Found in package: $EXTRACTED_VERSION"
+          exit 1
+        fi
+        
+        echo "✅ Package version verified: ${VERSION}"
+        ls -la ./artifacts/
+    
+    - name: Push to NuGet
+      run: |
+        dotnet nuget push "./artifacts/*.nupkg" \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate \
+          --no-symbols
