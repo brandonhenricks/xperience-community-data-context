@@ -617,16 +617,27 @@ internal sealed class MethodCallExpressionProcessor : IExpressionProcessor<Metho
                 // Multiple values - chain OR conditions
                 _context.AddWhereAction(w =>
                 {
-                    for (int i = 0; i < values.Length; i++)
+                    var collectionType = collectionValue.GetType();
+
+                    switch (collectionType)
                     {
-                        if (i == 0)
-                        {
-                            w.WhereEquals(paramName, values[i]);
-                        }
-                        else
-                        {
-                            w.Or().WhereEquals(paramName, values[i]);
-                        }
+                        case var _ when collectionType == typeof(int[]):
+                            w.WhereIn(paramName, (int[])collectionValue);
+                            break;
+
+                        case var _ when collectionType == typeof(string[]):
+                            w.WhereIn(paramName, (string[])collectionValue);
+                            break;
+
+                        case var _ when collectionType == typeof(Guid[]):
+                            w.WhereIn(paramName, (Guid[])collectionValue);
+                            break;
+
+                        default:
+                            // For other types, use a generic approach
+                            var valuesList = values.Select(v => v?.ToString()).ToList();
+                            w.WhereIn(paramName, valuesList);
+                            break;
                     }
                 });
             }
