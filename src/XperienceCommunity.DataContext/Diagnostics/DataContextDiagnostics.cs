@@ -176,7 +176,7 @@ public static class DataContextDiagnostics
                 ["QueriesLast1Hour"] = queryEntries.Count(e => e.Timestamp > DateTime.UtcNow.AddHours(-1)),
                 ["ErrorCount"] = queryEntries.Count(e => e.Level >= LogLevel.Error),
                 ["WarningCount"] = queryEntries.Count(e => e.Level == LogLevel.Warning),
-                ["LastQueryTime"] = queryEntries.LastOrDefault()?.Timestamp,
+                ["LastQueryTime"] = queryEntries.LastOrDefault()?.Timestamp ?? DateTime.UtcNow,
                 ["DiagnosticsEnabled"] = _diagnosticsEnabled,
                 ["TraceLevel"] = _traceLevel.ToString()
             };

@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using CMS.ContentEngine;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Abstractions.Processors;
@@ -225,9 +225,12 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
 
     private static bool TryUseNativeWhereIn(WhereParameters w, string paramName, object[] values, bool isNegated)
     {
-        // Determine the collection type and use appropriate WhereIn
-        var firstValue = values[0];
+        if (values.Length == 0) return false;
         
+        var firstValue = values[0];
+
+        if (firstValue == null) return false;
+
         try
         {
             switch (firstValue)
@@ -315,6 +318,7 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
         {
             ConstantExpression constant => constant.Value,
             MemberExpression member => Expression.Lambda(member).Compile().DynamicInvoke(),
+            MethodCallExpression method => Expression.Lambda(method).Compile().DynamicInvoke(),
             _ => throw new InvalidExpressionFormatException($"Unsupported collection expression type: {expr.GetType().Name}")
         };
     }
