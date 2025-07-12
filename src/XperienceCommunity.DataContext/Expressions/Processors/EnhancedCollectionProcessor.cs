@@ -146,8 +146,55 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
         }
         else if (node.Arguments.Count == 2)
         {
-            // Any(predicate) - would need recursive processing
-            throw new NotSupportedException("Any() with predicate is not currently supported");
+            // TODO Support Any(predicate)
+            // Support Any(predicate)
+            // Any(collection, predicate) - need to process the predicate for each element
+            // Example: collection.Any(x => x.Prop == value)
+            var collectionExpr = node.Arguments[0];
+            var predicateExpr = node.Arguments[1];
+
+            // Only support MemberExpression for collection for now
+            if (collectionExpr is not MemberExpression memberExpr)
+            {
+                throw new InvalidExpressionFormatException("Any() with predicate requires a member expression representing a collection property", node);
+            }
+
+            var paramName = ExtractMemberName(memberExpr);
+
+            // The predicate is usually a LambdaExpression
+            if (predicateExpr is not LambdaExpression lambda)
+            {
+                throw new InvalidExpressionFormatException("Any() with predicate requires a lambda expression as the predicate", node);
+            }
+
+            // For now, only support simple equality: x => x.Prop == value
+            if (lambda.Body is not BinaryExpression binaryExpr || binaryExpr.NodeType != ExpressionType.Equal)
+            {
+                throw new NotSupportedException("Only simple equality predicates are supported in Any(predicate)");
+            }
+
+            // Left should be MemberExpression (x.Prop), right should be ConstantExpression or MemberExpression
+            if (binaryExpr.Left is not MemberExpression leftMember)
+            {
+                throw new NotSupportedException("Only member access on the left side of the predicate is supported in Any(predicate)");
+            }
+
+            var innerPropName = ExtractMemberName(leftMember);
+            object? value;
+            switch (binaryExpr.Right)
+            {
+                case ConstantExpression constExpr:
+                    value = constExpr.Value;
+                    break;
+                case MemberExpression rightMember:
+                    value = Expression.Lambda(rightMember).Compile().DynamicInvoke();
+                    break;
+                default:
+                    throw new NotSupportedException("Only constant or member expressions are supported on the right side of the predicate in Any(predicate)");
+            }
+
+            // Add a where action for: paramName.innerPropName == value
+            _context.AddWhereAction(w => w.WhereEquals(innerPropName, value));
         }
         else
         {
