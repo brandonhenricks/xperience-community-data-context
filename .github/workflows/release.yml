@@ -1,4 +1,6 @@
 name: Nuget Release
+permissions:
+  contents: read
 
 on:
   push:
