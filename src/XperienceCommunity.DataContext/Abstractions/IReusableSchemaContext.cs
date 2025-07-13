@@ -10,11 +10,11 @@ public interface IReusableSchemaContext<T> : IDataContext<T>
     /// Specifies that the data context should include content type fields.
     /// </summary>
     /// <returns>The data context with content type fields included.</returns>
-    IDataContext<T> WithContentTypeFields();
+    IReusableSchemaContext<T> WithContentTypeFields();
 
     /// <summary>
     /// Specifies that the data context should include web page data.
     /// </summary>
     /// <returns>The data context with web page data included.</returns>
-    IDataContext<T> WithWebPageData();
+    IReusableSchemaContext<T> WithWebPageData();
 }
