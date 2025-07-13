@@ -45,10 +45,14 @@ public sealed class ExpressionContext : IExpressionContext
     /// </summary>
     public void AddParameter(string name, object? value)
     {
-        if (!_parameters.ContainsKey(name))
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        
+        if (_parameters.ContainsKey(name))
         {
-            _parameters.Add(name, value);
+            throw new InvalidOperationException($"Parameter '{name}' already exists");
         }
+        
+        _parameters.Add(name, value);
     }
 
     /// <summary>
@@ -116,13 +120,13 @@ internal sealed class ExpressionContextDebugView
     }
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public KeyValuePair<string, object?>[] Parameters => _context.Parameters.ToArray();
+    public KeyValuePair<string, object?>[] Parameters => [.. _context.Parameters];
 
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-    public string[] MemberAccessChain => _context.MemberAccessChain.ToArray();
+    public string[] MemberAccessChain => [.. _context.MemberAccessChain];
 
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-    public string[] LogicalGroupings => _context.LogicalGroupings.ToArray();
+    public string[] LogicalGroupings => [.. _context.LogicalGroupings];
 
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
     public int WhereActionCount => _context.WhereActions.Count;
