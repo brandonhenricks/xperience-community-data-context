@@ -22,9 +22,8 @@ public class ExpressionContextTests
     {
         var ctx = new ExpressionContext();
         ctx.AddParameter("foo", 123);
-        ctx.AddParameter("foo", 456);
-
-        Assert.Equal(123, ctx.Parameters["foo"]);
+        
+        Assert.Throws<InvalidOperationException>(() => ctx.AddParameter("foo", 456));
     }
 
     [Fact]
