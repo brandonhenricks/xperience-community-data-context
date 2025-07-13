@@ -39,7 +39,7 @@ public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchema
 
     /// <inheritdoc />
     [return: NotNull]
-    public IDataContext<T> WithContentTypeFields()
+    public IReusableSchemaContext<T> WithContentTypeFields()
     {
         _withContentFields = true;
         return this;
@@ -47,7 +47,7 @@ public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchema
 
 
     [return: NotNull]
-    public IDataContext<T> WithWebPageData()
+    public IReusableSchemaContext<T> WithWebPageData()
     {
         _withPageData = true;
         return this;
