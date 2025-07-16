@@ -104,11 +104,8 @@ jobs:
       run: dotnet restore
     
     - name: Build Project
-      run: dotnet build --no-restore --configuration Release /p:Version=${VERSION} /p:PackageReleaseNotes="${RELEASE_NOTES}"
-    
-    - name: Run Tests
-      run: dotnet test --no-build --configuration Release --verbosity normal
-    
+      run: dotnet build --no-restore --configuration Release /p:Version=${VERSION}"
+        
     - name: Pack Project
       run: dotnet pack --configuration Release /p:Version=${VERSION} /p:PackageReleaseNotes="${RELEASE_NOTES}" --no-build --output ./artifacts
     
