@@ -120,8 +120,7 @@ jobs:
         echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
         
         # Extract the version from the package filename
-        PACKAGE_NAME=$(basename "$PACKAGE_PATH")
-        EXTRACTED_VERSION=$(echo "$PACKAGE_NAME" | sed -n 's/.*\.\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*.*\)\.nupkg$/\1/p')
+        PACKAGE_NAME=$(basename "$PACKAGE_PATH")EXTRACTED_VERSION=$(echo "$PACKAGE_NAME" | sed -n 's/.*\.\([0-9]\+\.[0-9]\+\.[0-9]\+\(\.[0-9]\+\)*\)\.nupkg$/\1/p')
         
         echo "Package file: $PACKAGE_NAME"
         echo "Expected version: ${VERSION}"
