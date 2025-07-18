@@ -78,7 +78,13 @@ public sealed class ContentItemContext<T> : BaseDataContext<T, ContentQueryExecu
             {
                 subQuery.Where(whereAction);
             }
-            _parameters = context.Parameters.Select(p => new KeyValuePair<string, object?>(p.Key, p.Value)).ToList();
+            
+            // Update thread-safe parameter collection
+            _parameters.Clear();
+            foreach (var param in context.Parameters)
+            {
+                _parameters.TryAdd(param.Key, param.Value);
+            }
         });
 
         if (!string.IsNullOrEmpty(_language))
@@ -97,6 +103,7 @@ public sealed class ContentItemContext<T> : BaseDataContext<T, ContentQueryExecu
     [return: NotNull]
     protected override string GetCacheKey(ContentItemQueryBuilder queryBuilder)
     {
-        return $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelID}|{_language}|{queryBuilder.GetHashCode()}|{_parameters.GetHashCode()}";
+        var parametersHash = string.Join("|", _parameters.Select(p => $"{p.Key}:{p.Value}")).GetHashCode();
+        return $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelID}|{_language}|{queryBuilder.GetHashCode()}|{parametersHash}";
     }
 }
