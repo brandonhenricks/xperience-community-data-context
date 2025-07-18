@@ -11,7 +11,7 @@ namespace XperienceCommunity.DataContext.Executors;
 /// Executor for page content queries.
 /// </summary>
 /// <typeparam name="T">The type of page content.</typeparam>
-public sealed class PageContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IPageContentProcessor<T>> 
+public class PageContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IPageContentProcessor<T>> 
     where T : class, IWebPageFieldsSource, new()
 {
     /// <summary>
