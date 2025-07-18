@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -29,7 +31,7 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
     protected readonly string _contentType;
     protected readonly IWebsiteChannelContext _websiteChannelContext;
 
-    protected IList<KeyValuePair<string, object?>> _parameters;
+    protected readonly ConcurrentDictionary<string, object?> _parameters = new();
     protected bool? _includeTotalCount;
     protected string? _language;
     protected int? _linkedItemsDepth;
@@ -61,7 +63,6 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
         _queryExecutor = queryExecutor;
         _config = config;
         _contentType = contentType;
-        _parameters = new List<KeyValuePair<string, object?>>();
     }
 
     /// <inheritdoc />
@@ -76,7 +77,6 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
             () => _queryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
             GetCacheKey(queryBuilder));
 
-        _parameters.Clear();
         return result is not null ? result.SingleOrDefault() : default;
     }
 
@@ -92,7 +92,6 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
             () => _queryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
             GetCacheKey(queryBuilder));
 
-        _parameters.Clear();
         return result is not null ? result.FirstOrDefault() : default;
     }
 
@@ -108,7 +107,6 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
             () => _queryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
             GetCacheKey(queryBuilder));
 
-        _parameters.Clear();
         return result is not null ? result.LastOrDefault() : default;
     }
 
@@ -167,7 +165,6 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
             () => _queryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
             GetCacheKey(queryBuilder));
 
-        _parameters.Clear();
         return result ?? Array.Empty<T>();
     }
 

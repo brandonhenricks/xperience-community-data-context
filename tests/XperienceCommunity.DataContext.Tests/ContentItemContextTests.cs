@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using CMS.ContentEngine;
@@ -118,8 +119,11 @@ namespace XperienceCommunity.DataContext.Tests
             var type = typeof(ContentItemContext<TestContentItem>);
             type.GetField("_language", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(context, "en-US");
-            type.GetField("_parameters", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                ?.SetValue(context, new List<KeyValuePair<string, object?>> { new("a", 1) });
+            
+            var parametersField = type.GetField("_parameters", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var parameters = new ConcurrentDictionary<string, object?>();
+            parameters.TryAdd("a", 1);
+            parametersField?.SetValue(context, parameters);
 
             var builder = new ContentItemQueryBuilder();
             var method = type.GetMethod("GetCacheKey", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,8 +17,9 @@ public static class DataContextDiagnostics
 {
     private static bool _diagnosticsEnabled;
     private static LogLevel _traceLevel = LogLevel.Information;
-    private static readonly List<DiagnosticEntry> _diagnosticLog = new();
+    private static readonly ConcurrentQueue<DiagnosticEntry> _diagnosticLog = new();
     private static readonly object _logLock = new();
+    private const int MAX_LOG_ENTRIES = 1000;
 
     /// <summary>
     /// Gets or sets whether diagnostics are enabled.
@@ -45,10 +47,7 @@ public static class DataContextDiagnostics
     {
         get
         {
-            lock (_logLock)
-            {
-                return [.. _diagnosticLog];
-            }
+            return _diagnosticLog.ToList();
         }
     }
 
@@ -86,15 +85,12 @@ public static class DataContextDiagnostics
             ThreadId = Environment.CurrentManagedThreadId
         };
 
-        lock (_logLock)
-        {
-            _diagnosticLog.Add(entry);
+        _diagnosticLog.Enqueue(entry);
 
-            // Keep only the last 1000 entries to prevent memory leaks
-            if (_diagnosticLog.Count > 1000)
-            {
-                _diagnosticLog.RemoveRange(0, 500);
-            }
+        // Efficiently manage memory by removing excess entries
+        while (_diagnosticLog.Count > MAX_LOG_ENTRIES)
+        {
+            _diagnosticLog.TryDequeue(out _);
         }
 
         // Also output to debug console
@@ -106,9 +102,9 @@ public static class DataContextDiagnostics
     /// </summary>
     public static void ClearDiagnostics()
     {
-        lock (_logLock)
+        while (_diagnosticLog.TryDequeue(out _))
         {
-            _diagnosticLog.Clear();
+            // Clear all entries efficiently
         }
     }
 
@@ -127,30 +123,27 @@ public static class DataContextDiagnostics
         sb.AppendLine($"Trace Level: {_traceLevel}");
         sb.AppendLine();
 
-        lock (_logLock)
+        var filteredEntries = _diagnosticLog
+            .Where(e => e.Level >= minLevel)
+            .Where(e => category == null || e.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(e => e.Timestamp)
+            .ToList();
+
+        if (filteredEntries.Count == 0)
         {
-            var filteredEntries = _diagnosticLog
-                .Where(e => e.Level >= minLevel)
-                .Where(e => category == null || e.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(e => e.Timestamp)
-                .ToList();
+            sb.AppendLine("No diagnostic entries found matching criteria.");
+        }
+        else
+        {
+            sb.AppendLine($"Entries: {filteredEntries.Count}");
+            sb.AppendLine(new string('-', 80));
 
-            if (filteredEntries.Count == 0)
+            foreach (var entry in filteredEntries)
             {
-                sb.AppendLine("No diagnostic entries found matching criteria.");
-            }
-            else
-            {
-                sb.AppendLine($"Entries: {filteredEntries.Count}");
-                sb.AppendLine(new string('-', 80));
-
-                foreach (var entry in filteredEntries)
-                {
-                    sb.AppendLine($"[{entry.Timestamp:HH:mm:ss.fff}] [{entry.Level}] [{entry.Category}] Thread {entry.ThreadId}");
-                    sb.AppendLine($"  {entry.Message}");
-                    sb.AppendLine($"  @ {entry.MemberName} (line {entry.SourceLineNumber})");
-                    sb.AppendLine();
-                }
+                sb.AppendLine($"[{entry.Timestamp:HH:mm:ss.fff}] [{entry.Level}] [{entry.Category}] Thread {entry.ThreadId}");
+                sb.AppendLine($"  {entry.Message}");
+                sb.AppendLine($"  @ {entry.MemberName} (line {entry.SourceLineNumber})");
+                sb.AppendLine();
             }
         }
 
@@ -163,23 +156,20 @@ public static class DataContextDiagnostics
     /// <returns>A dictionary containing performance metrics.</returns>
     public static Dictionary<string, object> GetPerformanceStats()
     {
-        lock (_logLock)
-        {
-            var queryEntries = _diagnosticLog
-                .Where(e => e.Category.Equals("QueryExecution", StringComparison.OrdinalIgnoreCase))
-                .ToList();
+        var queryEntries = _diagnosticLog
+            .Where(e => e.Category.Equals("QueryExecution", StringComparison.OrdinalIgnoreCase))
+            .ToList();
 
-            return new Dictionary<string, object>
-            {
-                ["TotalQueries"] = queryEntries.Count,
-                ["QueriesLast5Minutes"] = queryEntries.Count(e => e.Timestamp > DateTime.UtcNow.AddMinutes(-5)),
-                ["QueriesLast1Hour"] = queryEntries.Count(e => e.Timestamp > DateTime.UtcNow.AddHours(-1)),
-                ["ErrorCount"] = queryEntries.Count(e => e.Level >= LogLevel.Error),
-                ["WarningCount"] = queryEntries.Count(e => e.Level == LogLevel.Warning),
-                ["LastQueryTime"] = queryEntries.LastOrDefault()?.Timestamp ?? DateTime.UtcNow,
-                ["DiagnosticsEnabled"] = _diagnosticsEnabled,
-                ["TraceLevel"] = _traceLevel.ToString()
-            };
-        }
+        return new Dictionary<string, object>
+        {
+            ["TotalQueries"] = queryEntries.Count,
+            ["QueriesLast5Minutes"] = queryEntries.Count(e => e.Timestamp > DateTime.UtcNow.AddMinutes(-5)),
+            ["QueriesLast1Hour"] = queryEntries.Count(e => e.Timestamp > DateTime.UtcNow.AddHours(-1)),
+            ["ErrorCount"] = queryEntries.Count(e => e.Level >= LogLevel.Error),
+            ["WarningCount"] = queryEntries.Count(e => e.Level == LogLevel.Warning),
+            ["LastQueryTime"] = queryEntries.LastOrDefault()?.Timestamp ?? DateTime.UtcNow,
+            ["DiagnosticsEnabled"] = _diagnosticsEnabled,
+            ["TraceLevel"] = _traceLevel.ToString()
+        };
     }
 }

@@ -115,7 +115,13 @@ public sealed class PageContentContext<T> : BaseDataContext<T, PageContentQueryE
             {
                 subQuery.Where(whereAction);
             }
-            _parameters = context.Parameters.Select(p => new KeyValuePair<string, object?>(p.Key, p.Value)).ToList();
+            
+            // Update thread-safe parameter collection
+            _parameters.Clear();
+            foreach (var param in context.Parameters)
+            {
+                _parameters.TryAdd(param.Key, param.Value);
+            }
         });
 
         if (!string.IsNullOrEmpty(_language))
@@ -132,6 +138,9 @@ public sealed class PageContentContext<T> : BaseDataContext<T, PageContentQueryE
     /// <param name="queryBuilder">The query builder.</param>
     /// <returns>The generated cache key.</returns>
     [return: NotNull]
-    protected override string GetCacheKey(ContentItemQueryBuilder queryBuilder) =>
-        $"data|{_contentType}|{GetChannelName()}|{_language}|{queryBuilder.GetHashCode()}|{_parameters?.GetHashCode()}";
+    protected override string GetCacheKey(ContentItemQueryBuilder queryBuilder)
+    {
+        var parametersHash = string.Join("|", _parameters.Select(p => $"{p.Key}:{p.Value}")).GetHashCode();
+        return $"data|{_contentType}|{GetChannelName()}|{_language}|{queryBuilder.GetHashCode()}|{parametersHash}";
+    }
 }
