@@ -30,6 +30,7 @@ context.PushLogicalGrouping("AND");
 ```
 
 **Debugger Features:**
+
 - **Parameters Count**: Number of query parameters
 - **Current Member Path**: Dot-separated property access chain (e.g., "User.Name.FirstName")
 - **Where Actions Count**: Number of where clause fragments
@@ -262,6 +263,7 @@ var context = dataContext.ForContentType<BlogPost>();
 ### Development Environment
 
 1. **Enable diagnostics during development**:
+
    ```csharp
    #if DEBUG
    DataContextDiagnostics.DiagnosticsEnabled = true;
@@ -270,6 +272,7 @@ var context = dataContext.ForContentType<BlogPost>();
    ```
 
 2. **Use conditional debugging**:
+
    ```csharp
    var context = dataContext.ForContentType<BlogPost>();
    
@@ -281,6 +284,7 @@ var context = dataContext.ForContentType<BlogPost>();
 ### Production Environment
 
 1. **Use structured logging**:
+
    ```csharp
    // Let the built-in ILogger integration handle production logging
    services.AddXperienceDataContext(config => 
@@ -290,6 +294,7 @@ var context = dataContext.ForContentType<BlogPost>();
    ```
 
 2. **Monitor performance counters**:
+
    ```csharp
    // Periodically check performance metrics
    var stats = DataContextDiagnostics.GetPerformanceStats();
@@ -302,6 +307,7 @@ var context = dataContext.ForContentType<BlogPost>();
 ### Memory Management
 
 The diagnostic system automatically manages memory by:
+
 - Keeping only the last 1000 diagnostic entries
 - Automatically removing older entries when the limit is reached
 - Using efficient data structures for tracking
@@ -309,7 +315,9 @@ The diagnostic system automatically manages memory by:
 ## Troubleshooting Common Issues
 
 ### High Memory Usage
+
 Check if diagnostics are accidentally enabled in production:
+
 ```csharp
 if (DataContextDiagnostics.DiagnosticsEnabled)
 {
@@ -318,7 +326,9 @@ if (DataContextDiagnostics.DiagnosticsEnabled)
 ```
 
 ### Performance Degradation
+
 Monitor average execution times:
+
 ```csharp
 var avgTime = ProcessorSupportedQueryExecutor<T, P>.AverageProcessingTimeMs;
 if (avgTime > acceptableThreshold)
@@ -328,7 +338,9 @@ if (avgTime > acceptableThreshold)
 ```
 
 ### Expression Processing Errors
+
 Enable detailed expression diagnostics:
+
 ```csharp
 DataContextDiagnostics.DiagnosticsEnabled = true;
 var report = DataContextDiagnostics.GetDiagnosticReport("ExpressionProcessing", LogLevel.Error);
