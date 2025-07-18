@@ -5,7 +5,7 @@ using XperienceCommunity.DataContext.Core;
 
 namespace XperienceCommunity.DataContext.Executors;
 
-public sealed class ReusableSchemaExecutor<T> : BaseContentQueryExecutor<T>
+public class ReusableSchemaExecutor<T> : BaseContentQueryExecutor<T>
 {
     private readonly ILogger<ReusableSchemaExecutor<T>> _logger;
 

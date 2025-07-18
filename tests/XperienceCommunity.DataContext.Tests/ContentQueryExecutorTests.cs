@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using XperienceCommunity.DataContext.Abstractions.Processors;
 using XperienceCommunity.DataContext.Executors;
-using static XperienceCommunity.DataContext.Tests.Executors.PageContentQueryExecutorTests;
 
 namespace XperienceCommunity.DataContext.Tests;
 
