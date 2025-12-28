@@ -92,7 +92,7 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
             stopwatch.Stop();
             // Track performance in DEBUG builds only
             QueryExecutorPerformanceTracker.RecordExecution(
-                GetType().FullName ?? GetType().Name, 
+                $"{GetType().Name}<{typeof(T).Name}>",
                 stopwatch.ElapsedMilliseconds);
         }
     }
