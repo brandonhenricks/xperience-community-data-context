@@ -75,7 +75,7 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var results = await ExecuteQueryInternalAsync(queryBuilder, queryOptions, cancellationToken);
+            var results = await ExecuteQueryInternalAsync(queryBuilder, queryOptions, cancellationToken).ConfigureAwait(false);
             
             activity?.SetTag("executionTimeMs", stopwatch.ElapsedMilliseconds);
             activity?.SetTag("resultCount", results?.Count() ?? 0);
@@ -94,7 +94,7 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
                 foreach (var processor in _processors.OrderBy(x => x.Order))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await processor.ProcessAsync(result, cancellationToken);
+                    await processor.ProcessAsync(result, cancellationToken).ConfigureAwait(false);
                 }
                 processedCount++;
             }
