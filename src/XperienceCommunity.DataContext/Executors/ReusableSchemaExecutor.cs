@@ -24,7 +24,7 @@ public class ReusableSchemaExecutor<T> : BaseContentQueryExecutor<T>
             cancellationToken.ThrowIfCancellationRequested();
 
             var results = await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return results ?? [];
         }
