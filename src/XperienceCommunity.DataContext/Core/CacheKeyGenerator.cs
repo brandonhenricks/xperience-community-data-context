@@ -52,7 +52,7 @@ internal static class CacheKeyGenerator
     }
 
     /// <summary>
-    /// Computes a hash for query parameters using HashCode.Combine.
+    /// Computes a hash for query parameters using the <see cref="HashCode"/> struct for efficient hashing.
     /// </summary>
     /// <param name="parameters">The parameters dictionary.</param>
     /// <returns>A hash code representing the parameters.</returns>
