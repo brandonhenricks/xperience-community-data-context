@@ -86,19 +86,31 @@ public sealed class PerformanceMetrics
     /// <summary>
     /// Gets the total number of executions.
     /// </summary>
-    public long TotalExecutions => _totalExecutions;
+    public long TotalExecutions => Interlocked.Read(ref _totalExecutions);
 
     /// <summary>
     /// Gets the total execution time in milliseconds.
     /// </summary>
-    public long TotalExecutionTimeMs => _totalExecutionTimeMs;
+    public long TotalExecutionTimeMs => Interlocked.Read(ref _totalExecutionTimeMs);
 
     /// <summary>
     /// Gets the average execution time in milliseconds.
+    /// Values are approximate under concurrency and intended for diagnostics only.
     /// </summary>
-    public double AverageExecutionTimeMs => 
-        _totalExecutions > 0 ? (double)_totalExecutionTimeMs / _totalExecutions : 0;
+    public double AverageExecutionTimeMs
+    {
+        get
+        {
+            var executions = Interlocked.Read(ref _totalExecutions);
+            if (executions <= 0)
+            {
+                return 0;
+            }
 
+            var totalTime = Interlocked.Read(ref _totalExecutionTimeMs);
+            return (double)totalTime / executions;
+        }
+    }
     /// <summary>
     /// Records a single execution.
     /// </summary>
