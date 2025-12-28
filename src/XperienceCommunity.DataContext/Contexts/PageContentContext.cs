@@ -140,7 +140,11 @@ public sealed class PageContentContext<T> : BaseDataContext<T, PageContentQueryE
     [return: NotNull]
     protected override string GetCacheKey(ContentItemQueryBuilder queryBuilder)
     {
-        var parametersHash = string.Join("|", _parameters.Select(p => $"{p.Key}:{p.Value}")).GetHashCode();
-        return $"data|{_contentType}|{GetChannelName()}|{_language}|{queryBuilder.GetHashCode()}|{parametersHash}";
+        return CacheKeyGenerator.GenerateCacheKey(
+            _contentType,
+            GetChannelName(),
+            _language,
+            queryBuilder,
+            _parameters);
     }
 }
