@@ -154,18 +154,45 @@ Console.WriteLine(debugInfo);
 
 ## Performance Tracking
 
-### Query Executor Performance Counters
+### Query Executor Performance Counters (DEBUG Builds Only)
 
-The `ProcessorSupportedQueryExecutor` class tracks performance metrics:
+The `QueryExecutorPerformanceTracker` class tracks performance metrics in DEBUG builds with zero runtime cost in Release builds:
 
 ```csharp
-// Access static performance counters
-long totalExecutions = ProcessorSupportedQueryExecutor<BlogPost, IContentProcessor<BlogPost>>.TotalExecutions;
-long totalTimeMs = ProcessorSupportedQueryExecutor<BlogPost, IContentProcessor<BlogPost>>.TotalProcessingTimeMs;
-double avgTimeMs = ProcessorSupportedQueryExecutor<BlogPost, IContentProcessor<BlogPost>>.AverageProcessingTimeMs;
+using XperienceCommunity.DataContext.Diagnostics;
 
-Console.WriteLine($"Average query time: {avgTimeMs:F2}ms over {totalExecutions} executions");
+// Access performance metrics for a specific executor type
+var executorTypeName = typeof(ContentQueryExecutor<BlogPost>).FullName;
+var metrics = QueryExecutorPerformanceTracker.GetMetrics(executorTypeName);
+
+Console.WriteLine($"Total Executions: {metrics.TotalExecutions}");
+Console.WriteLine($"Total Time: {metrics.TotalExecutionTimeMs}ms");
+Console.WriteLine($"Average Time: {metrics.AverageExecutionTimeMs:F2}ms");
+
+// Get all tracked executor types
+var trackedTypes = QueryExecutorPerformanceTracker.GetTrackedExecutorTypes();
+foreach (var type in trackedTypes)
+{
+    var typeMetrics = QueryExecutorPerformanceTracker.GetMetrics(type);
+    Console.WriteLine($"{type}: {typeMetrics.AverageExecutionTimeMs:F2}ms avg");
+}
+
+// Clear metrics for a specific executor
+QueryExecutorPerformanceTracker.Clear(executorTypeName);
+
+// Clear all metrics
+QueryExecutorPerformanceTracker.Clear();
 ```
+
+**Note**: Performance tracking uses `[Conditional("DEBUG")]` attributes, which means:
+- In DEBUG builds: Full tracking with negligible overhead
+- In Release builds: All tracking code is removed by the compiler (zero cost)
+
+This approach:
+- ✅ Eliminates thread contention in production
+- ✅ Removes false sharing risks
+- ✅ Improves testability (no shared static state across tests)
+- ✅ Keeps core executor logic focused on query execution
 
 ## Telemetry Integration
 
@@ -327,13 +354,21 @@ if (DataContextDiagnostics.DiagnosticsEnabled)
 
 ### Performance Degradation
 
-Monitor average execution times:
+Monitor average execution times (DEBUG builds only):
 
 ```csharp
-var avgTime = ProcessorSupportedQueryExecutor<T, P>.AverageProcessingTimeMs;
-if (avgTime > acceptableThreshold)
+using XperienceCommunity.DataContext.Diagnostics;
+
+var executorTypeName = typeof(ContentQueryExecutor<T>).FullName;
+var metrics = QueryExecutorPerformanceTracker.GetMetrics(executorTypeName);
+
+if (metrics.AverageExecutionTimeMs > acceptableThreshold)
 {
     // Investigate slow queries
+    logger.LogWarning(
+        "Executor {ExecutorType} has high average execution time: {AvgTime}ms",
+        executorTypeName,
+        metrics.AverageExecutionTimeMs);
 }
 ```
 

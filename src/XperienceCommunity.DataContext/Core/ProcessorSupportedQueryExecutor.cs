@@ -5,16 +5,18 @@ using System.ComponentModel;
 using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Abstractions.Processors;
+using XperienceCommunity.DataContext.Diagnostics;
 
 namespace XperienceCommunity.DataContext.Core;
 
 /// <summary>
 /// Abstract base class for content query executors that includes processor support.
+/// Performance metrics are tracked in DEBUG builds via <see cref="QueryExecutorPerformanceTracker"/>.
 /// </summary>
 /// <typeparam name="T">The type of content item.</typeparam>
 /// <typeparam name="TProcessor">The type of processor.</typeparam>
-[DebuggerDisplay("ContentType: {typeof(T).Name}, Processors: {_processors?.Count ?? 0}, ActivitySource: {ActivitySource.Name}")]
-[Description("Query executor with processor support and telemetry")]
+[DebuggerDisplay("ContentType: {typeof(T).Name}, Processors: {_processors?.Count ?? 0}")]
+[Description("Query executor with processor support")]
 public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseContentQueryExecutor<T>
     where T : class, new()
     where TProcessor : IProcessor<T>
@@ -22,30 +24,6 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
     private readonly ILogger _logger;
     private readonly ImmutableList<TProcessor>? _processors;
     private static readonly ActivitySource ActivitySource = new("XperienceCommunity.Data.Context.QueryExecution");
-
-    // Performance counters for debugging
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private static long _totalExecutions;
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private static long _totalProcessingTime;
-
-    /// <summary>
-    /// Gets the total number of query executions for this type.
-    /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-    public static long TotalExecutions => _totalExecutions;
-
-    /// <summary>
-    /// Gets the total processing time in milliseconds for this type.
-    /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-    public static long TotalProcessingTimeMs => _totalProcessingTime;
-
-    /// <summary>
-    /// Gets the average processing time per execution in milliseconds.
-    /// </summary>
-    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-    public static double AverageProcessingTimeMs => _totalExecutions > 0 ? (double)_totalProcessingTime / _totalExecutions : 0;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessorSupportedQueryExecutor{T, TProcessor}"/> class.
@@ -112,9 +90,10 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
         finally
         {
             stopwatch.Stop();
-            // Update performance counters
-            Interlocked.Increment(ref _totalExecutions);
-            Interlocked.Add(ref _totalProcessingTime, stopwatch.ElapsedMilliseconds);
+            // Track performance in DEBUG builds only
+            QueryExecutorPerformanceTracker.RecordExecution(
+                GetType().FullName ?? GetType().Name, 
+                stopwatch.ElapsedMilliseconds);
         }
     }
 
