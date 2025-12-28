@@ -2,6 +2,7 @@
 using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Core;
+using XperienceCommunity.DataContext.Exceptions;
 
 namespace XperienceCommunity.DataContext.Executors;
 
@@ -28,10 +29,15 @@ public class ReusableSchemaExecutor<T> : BaseContentQueryExecutor<T>
 
             return results ?? Array.Empty<T>();
         }
+        catch (OperationCanceledException)
+        {
+            // Allow cancellation to bubble up
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ex.Message);
-            return Array.Empty<T>();
+            _logger.LogError(ex, "Query execution failed for {ContentType}", typeof(T).Name);
+            throw new QueryExecutionException($"Failed to execute query for {typeof(T).Name}", typeof(T).Name, ex);
         }
     }
 }
