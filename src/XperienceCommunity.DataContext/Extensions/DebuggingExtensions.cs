@@ -118,7 +118,7 @@ public static class DebuggingExtensions
 
         try
         {
-            var result = await queryFunc(context);
+            var result = await queryFunc(context).ConfigureAwait(false);
 
             stopwatch.Stop();
 
