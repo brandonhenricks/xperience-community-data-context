@@ -75,39 +75,39 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var results = await ExecuteQueryInternalAsync(queryBuilder, queryOptions, cancellationToken);
+            var results = await ExecuteQueryInternalAsync(queryBuilder, queryOptions, cancellationToken).ConfigureAwait(false);
             
             activity?.SetTag("executionTimeMs", stopwatch.ElapsedMilliseconds);
             activity?.SetTag("resultCount", results?.Count() ?? 0);
 
             if (_processors == null)
             {
-                return results ?? [];
+                return results ?? Array.Empty<T>();
             }
 
             using var processingActivity = ActivitySource.StartActivity("ProcessResults");
             processingActivity?.SetTag("processorCount", _processors.Count);
             
             var processedCount = 0;
-            foreach (var result in results ?? [])
+            foreach (var result in results ?? Array.Empty<T>())
             {
                 foreach (var processor in _processors.OrderBy(x => x.Order))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    await processor.ProcessAsync(result, cancellationToken);
+                    await processor.ProcessAsync(result, cancellationToken).ConfigureAwait(false);
                 }
                 processedCount++;
             }
             
             processingActivity?.SetTag("itemsProcessed", processedCount);
-            return results ?? [];
+            return results ?? Array.Empty<T>();
         }
         catch (Exception ex)
         {
             activity?.SetTag("error", true);
             activity?.SetTag("errorMessage", ex.Message);
             _logger.LogError(ex, ex.Message);
-            return [];
+            return Array.Empty<T>();
         }
         finally
         {

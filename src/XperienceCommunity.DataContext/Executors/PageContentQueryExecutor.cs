@@ -32,6 +32,6 @@ public class PageContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IP
     protected override async Task<IEnumerable<T>> ExecuteQueryInternalAsync(ContentItemQueryBuilder queryBuilder,
         ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
     {
-        return await QueryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken);
+        return await QueryExecutor.GetMappedWebPageResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }
