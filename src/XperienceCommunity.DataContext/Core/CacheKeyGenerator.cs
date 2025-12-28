@@ -59,22 +59,38 @@ internal static class CacheKeyGenerator
     /// <returns>A hash code representing the parameters.</returns>
     private static int ComputeParametersHash(ConcurrentDictionary<string, object?> parameters)
     {
-        if (parameters.Count == 0)
+        var count = parameters.Count;
+        if (count == 0)
         {
             return 0;
         }
 
-        // Sort parameters by key for consistent hashing regardless of insertion order
-        var sortedParams = parameters.OrderBy(p => p.Key, StringComparer.Ordinal).ToList();
-        
         // Build hash using HashCode for efficiency
         var hashCode = new HashCode();
-        foreach (var param in sortedParams)
+
+        // Fast path for a single parameter: no need to sort or allocate additional collections
+        if (count == 1)
+        {
+            foreach (var param in parameters)
+            {
+                hashCode.Add(param.Key);
+                hashCode.Add(param.Value);
+                break;
+            }
+
+            return hashCode.ToHashCode();
+        }
+
+        // For multiple parameters, sort by key for consistent hashing regardless of insertion order.
+        // Use array sorting to avoid LINQ allocations and improve memory locality.
+        var entries = parameters.ToArray();
+        Array.Sort(entries, (x, y) => StringComparer.Ordinal.Compare(x.Key, y.Key));
+
+        foreach (var param in entries)
         {
             hashCode.Add(param.Key);
             hashCode.Add(param.Value);
         }
-        
         return hashCode.ToHashCode();
     }
 }
