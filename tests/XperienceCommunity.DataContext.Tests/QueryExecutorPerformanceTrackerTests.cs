@@ -71,6 +71,11 @@ public class QueryExecutorPerformanceTrackerTests
         QueryExecutorPerformanceTracker.RecordExecution("Executor1", 100);
         QueryExecutorPerformanceTracker.RecordExecution("Executor2", 200);
 
+#if DEBUG
+        // Verify executors were tracked before clearing
+        Assert.Equal(2, QueryExecutorPerformanceTracker.GetTrackedExecutorTypes().Count());
+#endif
+
         // Act
         QueryExecutorPerformanceTracker.Clear();
 

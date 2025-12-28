@@ -19,7 +19,6 @@ public static class QueryExecutorPerformanceTracker
     /// <param name="executorTypeName">The full name of the executor type.</param>
     /// <param name="executionTimeMs">The execution time in milliseconds.</param>
     [Conditional("DEBUG")]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void RecordExecution(string executorTypeName, long executionTimeMs)
     {
         var metrics = _performanceData.GetOrAdd(executorTypeName, _ => new PerformanceMetrics());

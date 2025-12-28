@@ -474,8 +474,9 @@ Built-in performance counters track query execution metrics in DEBUG builds only
 // Access performance statistics (DEBUG builds only)
 using XperienceCommunity.DataContext.Diagnostics;
 
+// Use the format "ExecutorName<ContentType>" to retrieve metrics
 var metrics = QueryExecutorPerformanceTracker.GetMetrics(
-    "XperienceCommunity.DataContext.Executors.ContentQueryExecutor`1");
+    "ContentQueryExecutor<BlogPost>");
 
 Console.WriteLine($"Total Executions: {metrics.TotalExecutions}");
 Console.WriteLine($"Average Time: {metrics.AverageExecutionTimeMs:F2}ms");
