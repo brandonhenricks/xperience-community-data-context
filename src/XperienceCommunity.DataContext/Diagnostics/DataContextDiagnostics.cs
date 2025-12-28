@@ -18,7 +18,6 @@ public static class DataContextDiagnostics
     private static bool _diagnosticsEnabled;
     private static LogLevel _traceLevel = LogLevel.Information;
     private static readonly ConcurrentQueue<DiagnosticEntry> _diagnosticLog = new();
-    private static readonly object _logLock = new();
     private const int MAX_LOG_ENTRIES = 1000;
 
     /// <summary>
