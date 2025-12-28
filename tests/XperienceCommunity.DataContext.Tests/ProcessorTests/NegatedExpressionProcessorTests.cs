@@ -1,8 +1,7 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using NSubstitute;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Expressions.Processors;
-using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
 
@@ -15,7 +14,7 @@ public class NegatedExpressionProcessorTests
         var context = Substitute.For<IExpressionContext>();
         var visitor = Substitute.For<Func<Expression, Expression>>();
         var processor = new NegatedExpressionProcessor(context, visitor);
-        
+
         var param = Expression.Parameter(typeof(TestClass), "x");
         var member = Expression.Property(param, nameof(TestClass.IsActive));
         var notExpression = Expression.Not(member);
@@ -34,7 +33,7 @@ public class NegatedExpressionProcessorTests
         var context = Substitute.For<IExpressionContext>();
         var visitor = Substitute.For<Func<Expression, Expression>>();
         var processor = new NegatedExpressionProcessor(context, visitor);
-        
+
         var param = Expression.Parameter(typeof(TestClass), "x");
         var member = Expression.Property(param, nameof(TestClass.IsActive));
 
@@ -52,7 +51,7 @@ public class NegatedExpressionProcessorTests
         var context = Substitute.For<IExpressionContext>();
         var visitor = Substitute.For<Func<Expression, Expression>>();
         var processor = new NegatedExpressionProcessor(context, visitor);
-        
+
         var param = Expression.Parameter(typeof(TestClass), "x");
         var member = Expression.Property(param, nameof(TestClass.IsActive));
         var notExpression = Expression.Not(member);
@@ -71,7 +70,7 @@ public class NegatedExpressionProcessorTests
         var context = Substitute.For<IExpressionContext>();
         var visitor = Substitute.For<Func<Expression, Expression>>();
         var processor = new NegatedExpressionProcessor(context, visitor);
-        
+
         var param = Expression.Parameter(typeof(TestClass), "x");
         var member = Expression.Property(param, nameof(TestClass.Name));
         var containsMethod = Expression.Call(member, nameof(string.Contains), null, Expression.Constant("test"));

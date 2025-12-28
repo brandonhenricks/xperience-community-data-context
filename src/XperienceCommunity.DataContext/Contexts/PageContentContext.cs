@@ -17,7 +17,7 @@ namespace XperienceCommunity.DataContext.Contexts;
 /// Provides context for querying page content of a specified type.
 /// </summary>
 /// <typeparam name="T">The type of the page content.</typeparam>
-public sealed class PageContentContext<T> : BaseDataContext<T, PageContentQueryExecutor<T>>, IPageContentContext<T> 
+public sealed class PageContentContext<T> : BaseDataContext<T, PageContentQueryExecutor<T>>, IPageContentContext<T>
     where T : class, IWebPageFieldsSource, new()
 {
     private string? _channelName;
@@ -58,7 +58,7 @@ public sealed class PageContentContext<T> : BaseDataContext<T, PageContentQueryE
     /// </summary>
     /// <returns>The channel name.</returns>
     [return: NotNull]
-    private string GetChannelName() => !string.IsNullOrEmpty(_channelName) ? _channelName 
+    private string GetChannelName() => !string.IsNullOrEmpty(_channelName) ? _channelName
         : _websiteChannelContext.WebsiteChannelName;
 
     /// <summary>
@@ -115,7 +115,7 @@ public sealed class PageContentContext<T> : BaseDataContext<T, PageContentQueryE
             {
                 subQuery.Where(whereAction);
             }
-            
+
             // Update thread-safe parameter collection
             _parameters.Clear();
             foreach (var param in context.Parameters)

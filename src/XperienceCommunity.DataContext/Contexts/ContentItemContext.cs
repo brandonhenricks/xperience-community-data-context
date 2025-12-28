@@ -16,7 +16,7 @@ namespace XperienceCommunity.DataContext.Contexts;
 /// Provides context for querying content items of a specified type.
 /// </summary>
 /// <typeparam name="T">The type of the content item.</typeparam>
-public sealed class ContentItemContext<T> : BaseDataContext<T, ContentQueryExecutor<T>>, IContentItemContext<T> 
+public sealed class ContentItemContext<T> : BaseDataContext<T, ContentQueryExecutor<T>>, IContentItemContext<T>
     where T : class, IContentItemFieldsSource, new()
 {
     /// <summary>
@@ -28,7 +28,7 @@ public sealed class ContentItemContext<T> : BaseDataContext<T, ContentQueryExecu
     /// <param name="config">The configuration.</param>
     public ContentItemContext(IWebsiteChannelContext websiteChannelContext,
         IProgressiveCache cache, ContentQueryExecutor<T> contentQueryExecutor, XperienceDataContextConfig config)
-        : base(websiteChannelContext, cache, contentQueryExecutor, config, 
+        : base(websiteChannelContext, cache, contentQueryExecutor, config,
               typeof(T).GetContentTypeName() ?? throw new InvalidOperationException("Content type name could not be determined."))
     {
     }
@@ -78,7 +78,7 @@ public sealed class ContentItemContext<T> : BaseDataContext<T, ContentQueryExecu
             {
                 subQuery.Where(whereAction);
             }
-            
+
             // Update thread-safe parameter collection
             _parameters.Clear();
             foreach (var param in context.Parameters)

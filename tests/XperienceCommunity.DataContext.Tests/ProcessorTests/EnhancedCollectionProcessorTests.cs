@@ -1,8 +1,7 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using NSubstitute;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Expressions.Processors;
-using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
 
@@ -14,7 +13,7 @@ public class EnhancedCollectionProcessorTests
         // Arrange
         var context = Substitute.For<IExpressionContext>();
         var processor = new EnhancedCollectionProcessor(context);
-        
+
         var collection = Expression.Constant(new[] { 1, 2, 3 });
         var value = Expression.Constant(2);
         var method = typeof(Enumerable).GetMethods()
@@ -35,7 +34,7 @@ public class EnhancedCollectionProcessorTests
         // Arrange
         var context = Substitute.For<IExpressionContext>();
         var processor = new EnhancedCollectionProcessor(context);
-        
+
         var collection = Expression.Constant(new List<int> { 1, 2, 3 });
         var value = Expression.Constant(2);
         var method = typeof(List<int>).GetMethod(nameof(List<int>.Contains), new[] { typeof(int) });
@@ -54,7 +53,7 @@ public class EnhancedCollectionProcessorTests
         // Arrange
         var context = Substitute.For<IExpressionContext>();
         var processor = new EnhancedCollectionProcessor(context);
-        
+
         var str = Expression.Constant("test");
         var method = typeof(string).GetMethod(nameof(string.ToUpper), Type.EmptyTypes);
         var methodCall = Expression.Call(str, method!);
@@ -72,7 +71,7 @@ public class EnhancedCollectionProcessorTests
         // Arrange
         var context = Substitute.For<IExpressionContext>();
         var processor = new EnhancedCollectionProcessor(context);
-        
+
         var collection = Expression.Constant(new[] { 1, 2, 3 });
         var param = Expression.Parameter(typeof(TestClass), "x");
         var member = Expression.Property(param, nameof(TestClass.Value));
@@ -95,7 +94,7 @@ public class EnhancedCollectionProcessorTests
         // Arrange
         var context = Substitute.For<IExpressionContext>();
         var processor = new EnhancedCollectionProcessor(context);
-        
+
         var collection = Expression.Constant(new List<int> { 1, 2, 3 });
         var param = Expression.Parameter(typeof(TestClass), "x");
         var member = Expression.Property(param, nameof(TestClass.Value));

@@ -1,6 +1,4 @@
-﻿using Xunit;
-
-namespace XperienceCommunity.DataContext.Tests;
+﻿namespace XperienceCommunity.DataContext.Tests;
 
 public class ProcessorSupportedQueryExecutorTests
 {

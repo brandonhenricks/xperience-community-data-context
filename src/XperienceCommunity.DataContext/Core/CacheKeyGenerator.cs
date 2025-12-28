@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using CMS.ContentEngine;
 
 namespace XperienceCommunity.DataContext.Core;

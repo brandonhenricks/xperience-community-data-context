@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Diagnostics;
 

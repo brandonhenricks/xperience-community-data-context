@@ -10,6 +10,5 @@ namespace XperienceCommunity.DataContext.Abstractions;
 /// Defines the context for querying content items of a specified type.
 /// </summary>
 public interface IContentItemContext<T> : IDataContext<T> where T : class, IContentItemFieldsSource, new()
-{        
-
+{
 }

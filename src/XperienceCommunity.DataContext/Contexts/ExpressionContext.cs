@@ -1,7 +1,7 @@
-﻿using CMS.ContentEngine;
-using XperienceCommunity.DataContext.Abstractions;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.ComponentModel;
+using CMS.ContentEngine;
+using XperienceCommunity.DataContext.Abstractions;
 
 namespace XperienceCommunity.DataContext.Contexts;
 
@@ -46,12 +46,12 @@ public sealed class ExpressionContext : IExpressionContext
     public void AddParameter(string name, object? value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        
+
         if (_parameters.ContainsKey(name))
         {
             throw new InvalidOperationException($"Parameter '{name}' already exists");
         }
-        
+
         _parameters.Add(name, value);
     }
 

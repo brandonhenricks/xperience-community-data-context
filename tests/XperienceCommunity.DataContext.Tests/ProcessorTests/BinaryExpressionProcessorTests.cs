@@ -3,7 +3,6 @@ using NSubstitute;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Expressions.Processors;
-using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
 
@@ -18,6 +17,7 @@ public class BinaryExpressionProcessorTests
 
         Assert.NotNull(processor);
     }
+
     [Fact]
     public void CanProcess_ShouldReturnTrue_ForBinaryExpression()
     {
@@ -175,5 +175,4 @@ public class BinaryExpressionProcessorTests
     {
         public int Id { get; set; }
     }
-
 }

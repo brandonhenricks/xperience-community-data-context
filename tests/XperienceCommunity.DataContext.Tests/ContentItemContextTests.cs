@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using CMS.ContentEngine;
 using CMS.Helpers;
@@ -10,7 +8,6 @@ using XperienceCommunity.DataContext.Abstractions.Processors;
 using XperienceCommunity.DataContext.Configurations;
 using XperienceCommunity.DataContext.Contexts;
 using XperienceCommunity.DataContext.Executors;
-using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests
 {
@@ -18,7 +15,7 @@ namespace XperienceCommunity.DataContext.Tests
     {
         public class TestContentItem : IContentItemFieldsSource
         {
-            public const string CONTENT_TYPE_NAME ="TestContentItem";
+            public const string CONTENT_TYPE_NAME = "TestContentItem";
 
             public ContentItemFields SystemFields => new ContentItemFields
             {
@@ -119,7 +116,7 @@ namespace XperienceCommunity.DataContext.Tests
             var type = typeof(ContentItemContext<TestContentItem>);
             type.GetField("_language", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 ?.SetValue(context, "en-US");
-            
+
             var parametersField = type.GetField("_parameters", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var parameters = new ConcurrentDictionary<string, object?>();
             parameters.TryAdd("a", 1);

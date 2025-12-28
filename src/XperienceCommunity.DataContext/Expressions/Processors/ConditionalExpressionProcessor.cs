@@ -1,7 +1,6 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Abstractions.Processors;
-using XperienceCommunity.DataContext.Exceptions;
 
 namespace XperienceCommunity.DataContext.Expressions.Processors;
 
@@ -25,12 +24,12 @@ internal sealed class ConditionalExpressionProcessor : IExpressionProcessor<Cond
         // Conditional expressions (x ? y : z) are complex and would typically require
         // CASE WHEN support in the underlying query system
         // For now, we'll only support simple constant scenarios
-        
+
         if (node.Test is ConstantExpression testConstant && testConstant.Value is bool testValue)
         {
             // Simple case: constant ? x : y
             var selectedBranch = testValue ? node.IfTrue : node.IfFalse;
-            
+
             if (selectedBranch is ConstantExpression resultConstant)
             {
                 // The result is a constant, so we can evaluate it directly

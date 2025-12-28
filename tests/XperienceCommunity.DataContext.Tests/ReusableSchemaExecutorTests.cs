@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using CMS.ContentEngine;
+﻿using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using Xunit;
 using XperienceCommunity.DataContext.Executors;
 
 namespace XperienceCommunity.DataContext.Tests.Executors

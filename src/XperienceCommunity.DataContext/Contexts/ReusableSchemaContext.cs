@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using CMS.ContentEngine;
-using CMS.DataEngine;
 using CMS.Helpers;
 using CMS.Websites;
 using CMS.Websites.Routing;
@@ -45,7 +44,6 @@ public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchema
         return this;
     }
 
-
     [return: NotNull]
     public IReusableSchemaContext<T> WithWebPageData()
     {
@@ -85,13 +83,11 @@ public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchema
                 {
                     subQuery.WithLinkedItems(_linkedItemsDepth.Value);
                 }
-
             });
         }
 
         queryBuilder.Parameters(p =>
         {
-
             if (topN.HasValue)
             {
                 p.TopN(topN.Value);

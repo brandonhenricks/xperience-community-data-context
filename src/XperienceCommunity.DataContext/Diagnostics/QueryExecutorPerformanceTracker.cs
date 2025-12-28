@@ -1,6 +1,5 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace XperienceCommunity.DataContext.Diagnostics;
 
@@ -34,8 +33,8 @@ public static class QueryExecutorPerformanceTracker
     public static PerformanceMetrics GetMetrics(string executorTypeName)
     {
 #if DEBUG
-        return _performanceData.TryGetValue(executorTypeName, out var metrics) 
-            ? metrics 
+        return _performanceData.TryGetValue(executorTypeName, out var metrics)
+            ? metrics
             : new PerformanceMetrics();
 #else
         return new PerformanceMetrics();
@@ -110,6 +109,7 @@ public sealed class PerformanceMetrics
             return (double)totalTime / executions;
         }
     }
+
     /// <summary>
     /// Records a single execution.
     /// </summary>

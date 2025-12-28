@@ -1,10 +1,8 @@
 ﻿using CMS.ContentEngine;
 using CMS.Websites;
 using Microsoft.Extensions.DependencyInjection;
-using XperienceCommunity.DataContext;
 using XperienceCommunity.DataContext.Abstractions.Processors;
 using XperienceCommunity.DataContext.Configurations;
-using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests;
 
@@ -17,6 +15,7 @@ public class XperienceContextBuilderTests
         var builder = new XperienceContextBuilder(services);
         Assert.NotNull(builder);
     }
+
     [Fact]
     public void AddContentItemProcessor_ShouldRegisterProcessor()
     {
@@ -64,6 +63,7 @@ public class XperienceContextBuilderTests
     {
         public ContentItemFields SystemFields => throw new NotImplementedException();
     }
+
     private class FakeContentProcessor : IContentItemProcessor<FakeContent>
     {
         public int Order => throw new NotImplementedException();
@@ -73,10 +73,12 @@ public class XperienceContextBuilderTests
             throw new NotImplementedException();
         }
     }
+
     private class FakePage : IWebPageFieldsSource
     {
         public WebPageFields SystemFields => throw new NotImplementedException();
     }
+
     private class FakePageProcessor : IPageContentProcessor<FakePage>
     {
         public int Order => throw new NotImplementedException();
@@ -86,5 +88,4 @@ public class XperienceContextBuilderTests
             throw new NotImplementedException();
         }
     }
-
 }

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Reflection;
 using CMS.ContentEngine;
-using CMS.DataEngine;
 using CMS.Websites;
 
 namespace XperienceCommunity.DataContext.Extensions;
@@ -101,14 +100,13 @@ internal static class TypeExtensions
         return field.GetValue(null) as string ?? null;
     }
 
-
     /// <summary>
     /// Gets the reusable field schema name for a given value.
     /// </summary>
     /// <typeparam name="T">The type of the value.</typeparam>
     /// <param name="type">The value to get the reusable field schema name from.</param>
     /// <returns>The reusable field schema name if found; otherwise, null.</returns>
-    internal static string? GetReusableFieldSchemaName<T>(this T type) where T: notnull, Type
+    internal static string? GetReusableFieldSchemaName<T>(this T type) where T : notnull, Type
     {
         if (type is null)
         {
@@ -120,7 +118,7 @@ internal static class TypeExtensions
 
         if (type.IsInterface)
         {
-            var reusableSchemaName =  type.GetStaticString(ReusableSchemaFieldName);
+            var reusableSchemaName = type.GetStaticString(ReusableSchemaFieldName);
 
             if (!string.IsNullOrEmpty(reusableSchemaName))
             {

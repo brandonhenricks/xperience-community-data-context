@@ -5,7 +5,8 @@ namespace XperienceCommunity.DataContext.Tests;
 
 public class ExpressionContextTests
 {
-    private class DummyWhereParameters { }
+    private class DummyWhereParameters
+    { }
 
     [Fact]
     public void AddParameter_AddsParameter_WhenNotExists()
@@ -22,7 +23,7 @@ public class ExpressionContextTests
     {
         var ctx = new ExpressionContext();
         ctx.AddParameter("foo", 123);
-        
+
         Assert.Throws<InvalidOperationException>(() => ctx.AddParameter("foo", 456));
     }
 

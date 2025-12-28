@@ -10,7 +10,7 @@ namespace XperienceCommunity.DataContext.Executors;
 /// Executor for content item queries.
 /// </summary>
 /// <typeparam name="T">The type of content item.</typeparam>
-public class ContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IContentItemProcessor<T>> 
+public class ContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IContentItemProcessor<T>>
     where T : class, IContentItemFieldsSource, new()
 {
     /// <summary>

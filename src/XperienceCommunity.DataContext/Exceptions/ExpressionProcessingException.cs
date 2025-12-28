@@ -1,6 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using System.Diagnostics;
 
 namespace XperienceCommunity.DataContext.Exceptions;
 
