@@ -111,7 +111,6 @@ public class QueryExecutorPerformanceTrackerTests
     public void PerformanceMetrics_AverageCalculation_IsCorrect()
     {
         // Arrange
-        var metrics = new PerformanceMetrics();
 
         // Simulate recording via the QueryExecutorPerformanceTracker
         var executorTypeName = "TestExecutor3";
