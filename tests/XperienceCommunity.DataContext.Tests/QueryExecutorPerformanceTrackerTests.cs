@@ -113,8 +113,7 @@ public class QueryExecutorPerformanceTrackerTests
         // Arrange
         var metrics = new PerformanceMetrics();
 
-        // Simulate internal recording (reflection or direct property assignment not possible, 
-        // so we test via the QueryExecutorPerformanceTracker)
+        // Simulate recording via the QueryExecutorPerformanceTracker
         var executorTypeName = "TestExecutor3";
         QueryExecutorPerformanceTracker.Clear(executorTypeName);
         
