@@ -1,0 +1,112 @@
+{
+  "inputs": [
+    {
+      "id": "arg0",
+      "type": "promptString",
+      "description": "Context7 API key (optional; increases rate limits). Get one at https://context7.com/dashboard",
+      "default": "",
+      "password": true
+    },
+    {
+      "id": "arg1",
+      "type": "promptString",
+      "description": "Optional: connect to an already-running Chrome (remote debugging / port-forward). Example: http://127.0.0.1:9222",
+      "default": ""
+    },
+    {
+      "id": "arg2",
+      "type": "promptString",
+      "description": "Run Chrome headless (true/false). Default: false",
+      "default": "false"
+    },
+    {
+      "id": "arg3",
+      "type": "promptString",
+      "description": "Use a temporary user-data-dir (true/false). Default: false",
+      "default": "false"
+    },
+    {
+      "id": "arg4",
+      "type": "promptString",
+      "description": "Chrome channel: stable | canary | beta | dev (default: stable).",
+      "default": "stable"
+    }
+  ],
+  "servers": {
+    "appModernization": {
+      "type": "stdio",
+      "command": "c:\\program files\\microsoft visual studio\\2022\\professional\\common7\\ide\\vsextensions\\dy1nkboj.5gq\\McpServer.exe"
+    },
+    "Context7": {
+      "type": "sse",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "${input:arg0}"
+      },
+      "internalMetadata": {
+        "description": "Get up-to-date, version-specific documentation and code examples from any library or framework.",
+        "version": "1.0.0",
+        "repository": "https://github.com/upstash/context7",
+        "id": "upstash/context7",
+        "publishedDate": "9/9/2025 10:55:22 AM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    },
+    "Chrome DevTools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--browserUrl",
+        "${input:arg1}",
+        "--headless",
+        "${input:arg2}",
+        "--isolated",
+        "${input:arg3}",
+        "--channel",
+        "${input:arg4}"
+      ],
+      "internalMetadata": {
+        "description": "Lets your coding agent (such as Gemini, Claude, Cursor or Copilot) control and inspect a live Chrome browser.",
+        "version": "0.0.1-seed",
+        "repository": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
+        "id": "chromedevtools/chrome-devtools-mcp",
+        "publishedDate": "9/9/2025 10:55:22 AM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    },
+    "context7": {
+      "type": "sse",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "Microsoft Learn": {
+      "type": "sse",
+      "url": "https://learn.microsoft.com/api/mcp",
+      "internalMetadata": {
+        "description": "Enables clients like GitHub Copilot and other AI agents to bring trusted and up-to-date information directly from Microsoft's official documentation.",
+        "version": "1.0.0",
+        "repository": "https://github.com/microsoftdocs/mcp",
+        "id": "microsoftdocs/mcp",
+        "publishedDate": "8/22/2025 12:00:00 AM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    },
+    "GitHub": {
+      "type": "sse",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "internalMetadata": {
+        "description": "Official GitHub MCP Server that connects AI tools directly to GitHub's platform. Enables AI agents to read repositories, manage issues and PRs, analyze code, and automate workflows through natural language interactions.",
+        "version": "0.13.0",
+        "repository": "https://github.com/github/github-mcp-server",
+        "id": "github/github-mcp-server",
+        "publishedDate": "8/22/2025 12:00:00 AM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    },
+    "kentico-docs-mcp": {
+			"type": "http",
+			"url": "https://docs.kentico.com/mcp"
+		}
+  }
+}
