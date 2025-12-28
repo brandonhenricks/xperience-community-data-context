@@ -1,5 +1,21 @@
 # Technology Stack
 
+Primary technologies and libraries used in the repository:
+
+- .NET: multi-targeting .NET 8 and .NET 9 (library and tests).
+- Kentico Xperience runtime types: integrations with `IContentQueryExecutor`, `ContentItemQueryBuilder`, `IWebsiteChannelContext`, `IContentItemFieldsSource`.
+- Dependency Injection: `Microsoft.Extensions.DependencyInjection` for builder/extension-based registrations.
+- Testing: xUnit, NSubstitute for mocking.
+- Logging & Diagnostics: `Microsoft.Extensions.Logging`, custom `DataContextDiagnostics`, Activity/OpenTelemetry integration.
+
+Other notable items
+- Uses `IProgressiveCache` and `CacheHelper` (Kentico caching primitives).
+- Uses `ConcurrentDictionary`, expression tree APIs (`System.Linq.Expressions`) for query translation.
+
+Version guidance
+- Keep multi-targeting consistent with project properties; prefer NuGet package versions that support both .NET 8 and .NET 9.
+# Technology Stack
+
 This document provides a comprehensive overview of all technologies, frameworks, libraries, and tools used in the XperienceCommunity.DataContext project.
 
 ---

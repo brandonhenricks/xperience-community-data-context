@@ -1,5 +1,39 @@
 # Code Exemplars
 
+This file highlights a few classes and patterns in the repository that are good examples of clean design, testability, and SOLID principles.
+
+- `BaseDataContext<T, TExecutor>`
+  - Why exemplary: centralizes shared behavior (caching, options, query lifecycle) and reduces duplication across context types.
+  - Excerpt (simplified):
+
+```csharp
+// Initializes query and applies fluent filters
+protected virtual void InitializeQuery() => _query ??= Enumerable.Empty<T>().AsQueryable();
+
+public virtual IDataContext<T> Where(Expression<Func<T,bool>> predicate)
+{
+    InitializeQuery();
+    _query = _query?.Where(predicate);
+    return this;
+}
+```
+
+- `ContentItemQueryExpressionVisitor`
+  - Why exemplary: clean visitor + processor separation; processors are small, focused translation units.
+  - Best practice: add a new processor under `Expressions/Processors/` and register it in the visitor.
+
+- `ContentQueryExecutor<T>`
+  - Why exemplary: executor pattern isolates external Kentico calls behind an interface so tests can mock `IContentQueryExecutor`.
+
+- `XperienceContextBuilder`
+  - Why exemplary: builder pattern for configuring DI and processors; keeps DI registrations fluent and discoverable.
+
+How to follow these exemplars when contributing
+- Prefer small, single-responsibility processors for expression handling.
+- Keep DI registrations centralized in `DependencyInjection` and `XperienceContextBuilder`.
+- Write unit tests for processors and executors that mock Kentico interfaces.
+# Code Exemplars
+
 This document highlights exemplary code patterns, classes, and methods that demonstrate best practices in the XperienceCommunity.DataContext library. Use these as reference implementations when contributing or extending the library.
 
 ---

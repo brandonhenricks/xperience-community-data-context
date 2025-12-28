@@ -1,5 +1,40 @@
 # Project Folder Structure
 
+Top-level layout (annotated):
+
+```
+/.github/
+  /instructions/                # (this folder) repo-specific guidance
+docs/                          # documentation (Debugging-Guide.md, etc.)
+src/
+  XperienceCommunity.DataContext/  # main library
+    Abstractions/
+    Configurations/
+    Contexts/
+    Core/
+    Diagnostics/
+    Exceptions/
+    Executors/
+    Expressions/
+      Processors/
+      Visitors/
+    Extensions/
+tests/
+  XperienceCommunity.DataContext.Tests/  # unit tests
+README.md
+```
+
+Key files to review
+- `src/XperienceCommunity.DataContext/Core/BaseDataContext.cs` — shared core logic and caching.
+- `src/XperienceCommunity.DataContext/Expressions/Visitors/ContentItemQueryExpressionVisitor.cs` — expression pipeline entry point.
+- `src/XperienceCommunity.DataContext/Executors/` — Kentico integration surface.
+- `tests/XperienceCommunity.DataContext.Tests/` — test coverage for processors and executors.
+
+Notes
+- Keep new processors in `Expressions/Processors/` and register them in the visitor.
+- Keep DI configuration centralized in `DependencyInjection.cs` and `Configurations/XperienceContextBuilder.cs`.
+# Project Folder Structure
+
 ```
 xperience-community-data-context/
 │
