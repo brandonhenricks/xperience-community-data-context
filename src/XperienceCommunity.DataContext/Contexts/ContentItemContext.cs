@@ -103,7 +103,11 @@ public sealed class ContentItemContext<T> : BaseDataContext<T, ContentQueryExecu
     [return: NotNull]
     protected override string GetCacheKey(ContentItemQueryBuilder queryBuilder)
     {
-        var parametersHash = string.Join("|", _parameters.Select(p => $"{p.Key}:{p.Value}")).GetHashCode();
-        return $"data|{_contentType}|{_websiteChannelContext.WebsiteChannelID}|{_language}|{queryBuilder.GetHashCode()}|{parametersHash}";
+        return CacheKeyGenerator.GenerateCacheKey(
+            _contentType,
+            _websiteChannelContext.WebsiteChannelID.ToString(),
+            _language,
+            queryBuilder,
+            _parameters);
     }
 }
