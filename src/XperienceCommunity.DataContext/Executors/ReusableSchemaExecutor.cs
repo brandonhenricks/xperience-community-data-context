@@ -26,12 +26,12 @@ public class ReusableSchemaExecutor<T> : BaseContentQueryExecutor<T>
             var results = await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return results ?? [];
+            return results ?? Array.Empty<T>();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, ex.Message);
-            return [];
+            return Array.Empty<T>();
         }
     }
 }

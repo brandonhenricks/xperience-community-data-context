@@ -82,7 +82,7 @@ internal static class ExpressionExtensions
     {
         if (value is null)
         {
-            return [];
+            return Array.Empty<object>();
         }
 
         if (value is IEnumerable<object> objectEnumerable)

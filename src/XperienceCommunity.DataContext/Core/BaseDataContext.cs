@@ -255,14 +255,14 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
     protected virtual string[] GetCacheDependencies<TResult>(TResult data)
     {
         if (data is null)
-            return [];
+            return Array.Empty<string>();
 
         return data switch
         {
             IEnumerable<T> items => GetCacheDependencies(items),
             IWebPageFieldsSource webPage => [$"contentitem|byid|{webPage.SystemFields.ContentItemID}"],
             IContentItemFieldsSource item => [$"contentitem|byid|{item.SystemFields.ContentItemID}"],
-            _ => []
+            _ => Array.Empty<string>()
         };
     }
 
