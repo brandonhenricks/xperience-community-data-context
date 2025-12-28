@@ -147,7 +147,11 @@ public sealed class ReusableSchemaContext<T> : BaseDataContext<T, ReusableSchema
     [return: NotNull]
     protected override string GetCacheKey(ContentItemQueryBuilder queryBuilder)
     {
-        var parametersHash = string.Join("|", _parameters.Select(p => $"{p.Key}:{p.Value}")).GetHashCode();
-        return $"data|{_contentType}|reusable|{_language}|{queryBuilder.GetHashCode()}|{parametersHash}";
+        return CacheKeyGenerator.GenerateCacheKey(
+            _contentType,
+            "reusable",
+            _language,
+            queryBuilder,
+            _parameters);
     }
 }
