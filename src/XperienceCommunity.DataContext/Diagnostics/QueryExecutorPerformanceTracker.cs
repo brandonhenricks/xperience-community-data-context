@@ -49,7 +49,7 @@ public static class QueryExecutorPerformanceTracker
     public static IEnumerable<string> GetTrackedExecutorTypes()
     {
 #if DEBUG
-        return _performanceData.Keys.ToList();
+        return _performanceData.Keys;
 #else
         return Enumerable.Empty<string>();
 #endif
