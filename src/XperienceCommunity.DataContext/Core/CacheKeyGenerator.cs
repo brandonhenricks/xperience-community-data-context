@@ -25,17 +25,29 @@ internal static class CacheKeyGenerator
         ContentItemQueryBuilder queryBuilder,
         ConcurrentDictionary<string, object?> parameters)
     {
-        // Use HashCode.Combine for efficient parameter hashing
-        var parametersHash = ComputeParametersHash(parameters);
-        
-        // Combine all components using HashCode.Combine for better distribution
-        var combinedHash = HashCode.Combine(
-            contentType,
-            identifier,
-            language ?? string.Empty,
-            queryBuilder.GetHashCode(),
-            parametersHash);
-        
+        // Build a single hash from all structural components to reduce collision risk
+        var hashCode = new HashCode();
+
+        // Core identity components
+        hashCode.Add(contentType);
+        hashCode.Add(identifier);
+        hashCode.Add(language ?? string.Empty);
+
+        // Use a structural representation of the query builder if available
+        hashCode.Add(queryBuilder.ToString() ?? string.Empty);
+
+        // Fold parameters directly into the same hash, sorted for order independence
+        if (parameters.Count > 0)
+        {
+            var sortedParams = parameters.OrderBy(p => p.Key, StringComparer.Ordinal);
+            foreach (var param in sortedParams)
+            {
+                hashCode.Add(param.Key);
+                hashCode.Add(param.Value);
+            }
+        }
+
+        var combinedHash = hashCode.ToHashCode();
         // Return a structured cache key with the combined hash
         return $"data|{contentType}|{identifier}|{language ?? "default"}|{combinedHash}";
     }
