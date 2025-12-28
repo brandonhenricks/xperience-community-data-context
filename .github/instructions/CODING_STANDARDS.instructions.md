@@ -1,5 +1,40 @@
 # Coding Standards
 
+Repository-wide conventions and recommendations derived from the codebase:
+
+- Language & Targeting
+  - Multi-targeting .NET 8/.NET 9 is used in CI; prefer language features compatible with both targets.
+  - Implicit usings enabled — omit explicit common usings in new files unless needed.
+  - Nullable Reference Types enabled — annotate nullability and prefer `ArgumentNullException.ThrowIfNull` patterns.
+
+- Naming & Structure
+  - One public class per file.
+  - Type names: `PascalCase` for classes and interfaces (`IContentItemContext`).
+  - Private fields: `_camelCase` prefixed with underscore (existing style in `BaseDataContext`).
+
+- Formatting & Style
+  - Follow existing indentation and braces style — minimal reformatting in patches.
+  - Keep methods short and focused; prefer private helpers over large methods.
+
+- Async & Cancellation
+  - All I/O methods should be async and accept `CancellationToken` (follow `SingleOrDefaultAsync` pattern).
+
+- Errors & Validation
+  - Use `ArgumentNullException.ThrowIfNull(...)` and `ArgumentException.ThrowIfNullOrEmpty(...)` where appropriate.
+  - Prefer throwing domain-specific exceptions for expression translation issues (repository already defines `UnsupportedExpressionException`).
+
+- Tests
+  - Follow AAA pattern (Arrange, Act, Assert).
+  - Use NSubstitute for mocking Kentico dependencies (current tests already follow this).
+
+- Documentation & Contribution
+  - When adding expression processors, include a short doc comment describing the supported expression shape and an accompanying unit test.
+
+Recommended linters/formatters (optional)
+- `dotnet format` for whitespace/formatting consistency.
+- Consider adding `editorconfig` if not already present to lock whitespace and file-level settings.
+# Coding Standards
+
 This document defines the coding conventions, style guidelines, and quality standards for the XperienceCommunity.DataContext library.
 
 ---

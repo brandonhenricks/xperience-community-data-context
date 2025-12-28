@@ -1,3 +1,29 @@
+# Architecture Summary
+
+Core architectural patterns
+- Three-Context Pattern: three specialized data contexts — `ContentItemContext<T>`, `PageContentContext<T>`, and `ReusableSchemaContext<T>` — inherit from a shared `BaseDataContext<T, TExecutor>` that centralizes caching, parameter management, and common query APIs.
+- Expression Translation Pipeline: uses an `ExpressionVisitor` (`ContentItemQueryExpressionVisitor`) with pluggable expression processors to translate LINQ expressions into Kentico `ContentItemQueryBuilder` fragments.
+- Executor Pattern: Typed executors (`ContentQueryExecutor<T>`, `PageContentQueryExecutor<T>`, `ReusableSchemaExecutor<T>`) encapsulate execution against Kentico APIs and optional post-processing via `IContentItemProcessor<T>`-style processors.
+
+Major layers & responsibilities
+- API / Contexts (public surface): fluent query methods, language/caching options, processors registration helpers.
+- Core (shared behavior): `BaseDataContext` handles query lifecycle, cache lookup, query options and dependency keys.
+- Expressions: visitors and processors transform user LINQ into query builder constructs.
+- Executors: run queries, apply post-query processors, and return typed results.
+- Diagnostics & Telemetry: `DataContextDiagnostics`, `QueryExecutorPerformanceTracker`, and Activity/OpenTelemetry integrations for traceability.
+
+Communication flows
+- Consumer code -> `IXperienceDataContext.ForContentType<T>()` -> context fluent API -> expression visitor -> `ContentItemQueryBuilder` -> executor -> Kentico `IContentQueryExecutor` -> results -> optional processors -> cached/store returned.
+
+Architectural risks & recommended improvements
+- Surface area coupling to Kentico types (ContentItemQueryBuilder, IContentQueryExecutor) makes pure unit testing harder — ensure executor boundaries are small and well-mocked (already used in tests).
+- Expression translation complexity: adding new processors must follow existing processor-registration pattern and include unit tests. Consider documenting a contributor guide for adding processors.
+- Global static diagnostic flags risk accidental production enablement. Enforce environment gated defaults and configuration via DI.
+- Public API stability: many generic/context classes are DI-registered; avoid breaking changes by adding extension methods instead of changing interfaces.
+
+Actionable next steps
+- Add a short CONTRIBUTING.md for adding expression processors and executors.
+- Harden diagnostics configuration to be opt-in via DI configuration.
 # Architecture
 
 ## Overview

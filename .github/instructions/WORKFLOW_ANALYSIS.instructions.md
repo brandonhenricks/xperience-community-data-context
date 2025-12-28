@@ -1,3 +1,28 @@
+# Workflow Analysis & Recommendations
+
+Developer workflow observed
+- Local development uses `dotnet build` and `dotnet test` for verification; tests are organized under `tests/` project.
+- VS Code tasks are defined (build, publish, watch) for the tests project.
+
+CI/CD recommendations
+- Add a GitHub Actions workflow that runs `dotnet restore`, `dotnet build`, and `dotnet test` for both target frameworks. Gate PRs on test success and static analysis.
+- Include `dotnet format` as an optional check in CI to maintain formatting consistency.
+
+Release & packaging
+- Library already structured to be packaged via `dotnet pack`/`dotnet publish` — add a CI job to create artifacts and optionally publish to a NuGet feed when a release tag is created.
+
+Automation opportunities
+- Automated codeowners/PR reviewers for core areas (Expressions, Executors, DI) to speed reviews for high-risk changes.
+- Add a small acceptance test harness that runs a smoke test against a minimal Kentico-like stub if integration tests are desired.
+
+Local developer quick commands
+```
+dotnet restore
+dotnet build
+dotnet test
+
+# VS Code tasks can be executed: Tasks -> Run Task -> build
+```
 # Workflow Analysis
 
 This document analyzes developer workflows, CI/CD pipelines, release management processes, and identifies automation opportunities and bottlenecks in the XperienceCommunity.DataContext project.

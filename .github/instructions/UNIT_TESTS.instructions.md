@@ -1,3 +1,30 @@
+# Unit Tests Summary & Recommendations
+
+Current strategy
+- Tests use xUnit and NSubstitute to mock Kentico dependencies (`IContentQueryExecutor`, `IProgressiveCache`, `IWebsiteChannelContext`).
+- Tests focus on: expression visitor behavior, cache key generation, executor behavior, and processor execution.
+- Example tests: `ContentItemContextTests`, `ContentItemQueryExpressionVisitorTests`, `ContentQueryExecutorTests`.
+
+Strengths
+- Good isolation of Kentico dependencies via interfaces makes unit testing reliable.
+- Diagnostic-related classes and performance tracker have dedicated tests.
+
+Gaps and recommendations
+- Coverage for new expression processors: add a test per processor asserting generated `ContentItemQueryBuilder` fragments.
+- Add round-trip tests that validate cache dependency keys for collections and single items.
+- Add integration-style tests (lightweight) that exercise a full context -> executor path using in-memory test doubles.
+
+Test hygiene recommendations
+- Ensure tests are deterministic by avoiding shared static state (clear `QueryExecutorPerformanceTracker` between tests).
+- Use `CancellationToken.None` explicitly to make intent clear in async tests.
+- Use explicit arrange/mocks for `IWebsiteChannelContext.IsPreview` to assert caching bypass paths.
+
+How to run tests (local)
+```
+dotnet restore
+dotnet build tests/XperienceCommunity.DataContext.Tests/XperienceCommunity.DataContext.Tests.csproj
+dotnet test tests/XperienceCommunity.DataContext.Tests/XperienceCommunity.DataContext.Tests.csproj
+```
 # Unit Tests
 
 This document describes the unit testing strategy, patterns, tools, and coverage goals for the XperienceCommunity.DataContext library.
