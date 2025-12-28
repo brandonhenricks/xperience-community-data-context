@@ -162,7 +162,8 @@ The `QueryExecutorPerformanceTracker` class tracks performance metrics in DEBUG 
 using XperienceCommunity.DataContext.Diagnostics;
 
 // Access performance metrics for a specific executor type
-var executorTypeName = typeof(ContentQueryExecutor<BlogPost>).FullName;
+// Use the format "ExecutorName<ContentType>" to match the recorded metrics
+var executorTypeName = $"{nameof(ContentQueryExecutor<BlogPost>)}<{nameof(BlogPost)}>";
 var metrics = QueryExecutorPerformanceTracker.GetMetrics(executorTypeName);
 
 Console.WriteLine($"Total Executions: {metrics.TotalExecutions}");
@@ -359,7 +360,8 @@ Monitor average execution times (DEBUG builds only):
 ```csharp
 using XperienceCommunity.DataContext.Diagnostics;
 
-var executorTypeName = typeof(ContentQueryExecutor<T>).FullName;
+// Use the format "ExecutorName<ContentType>" to match the recorded metrics
+var executorTypeName = $"{nameof(ContentQueryExecutor<T>)}<{typeof(T).Name}>";
 var metrics = QueryExecutorPerformanceTracker.GetMetrics(executorTypeName);
 
 if (metrics.AverageExecutionTimeMs > acceptableThreshold)
