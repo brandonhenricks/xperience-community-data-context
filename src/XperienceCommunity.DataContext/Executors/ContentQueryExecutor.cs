@@ -29,6 +29,6 @@ public class ContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IConte
     protected override async Task<IEnumerable<T>> ExecuteQueryInternalAsync(ContentItemQueryBuilder queryBuilder,
         ContentQueryExecutionOptions queryOptions, CancellationToken cancellationToken)
     {
-        return await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken);
+        return await QueryExecutor.GetMappedResult<T>(queryBuilder, queryOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 }

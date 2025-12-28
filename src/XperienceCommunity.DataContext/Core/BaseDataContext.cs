@@ -72,7 +72,7 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
 
         var result = await GetOrCacheAsync(
             () => _queryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
-            GetCacheKey(queryBuilder));
+            GetCacheKey(queryBuilder)).ConfigureAwait(false);
 
         return result is not null ? result.SingleOrDefault() : default;
     }
@@ -87,7 +87,7 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
 
         var result = await GetOrCacheAsync(
             () => _queryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
-            GetCacheKey(queryBuilder));
+            GetCacheKey(queryBuilder)).ConfigureAwait(false);
 
         return result is not null ? result.FirstOrDefault() : default;
     }
@@ -102,7 +102,7 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
 
         var result = await GetOrCacheAsync(
             () => _queryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
-            GetCacheKey(queryBuilder));
+            GetCacheKey(queryBuilder)).ConfigureAwait(false);
 
         return result is not null ? result.LastOrDefault() : default;
     }
@@ -160,7 +160,7 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
 
         var result = await GetOrCacheAsync(
             () => _queryExecutor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken),
-            GetCacheKey(queryBuilder));
+            GetCacheKey(queryBuilder)).ConfigureAwait(false);
 
         return result ?? Array.Empty<T>();
     }
@@ -227,14 +227,14 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
     {
         if (_websiteChannelContext.IsPreview)
         {
-            return await executeFunc();
+            return await executeFunc().ConfigureAwait(false);
         }
 
         var cacheSettings = new CacheSettings(_config.CacheTimeOut, true, cacheKey);
 
         return await _cache.LoadAsync(async cs =>
         {
-            var result = await executeFunc();
+            var result = await executeFunc().ConfigureAwait(false);
             cs.BoolCondition = result != null;
 
             if (!cs.Cached)
@@ -244,7 +244,7 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
 
             cs.CacheDependency = CacheHelper.GetCacheDependency(GetCacheDependencies(result));
             return result;
-        }, cacheSettings);
+        }, cacheSettings).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -255,14 +255,14 @@ public abstract class BaseDataContext<T, TExecutor> : IDataContext<T>
     protected virtual string[] GetCacheDependencies<TResult>(TResult data)
     {
         if (data is null)
-            return [];
+            return Array.Empty<string>();
 
         return data switch
         {
             IEnumerable<T> items => GetCacheDependencies(items),
             IWebPageFieldsSource webPage => [$"contentitem|byid|{webPage.SystemFields.ContentItemID}"],
             IContentItemFieldsSource item => [$"contentitem|byid|{item.SystemFields.ContentItemID}"],
-            _ => []
+            _ => Array.Empty<string>()
         };
     }
 
