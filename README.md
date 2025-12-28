@@ -468,12 +468,20 @@ var stats = context.GetPerformanceStats();
 
 ### Performance Tracking
 
-Built-in performance counters track query execution metrics:
+Built-in performance counters track query execution metrics in DEBUG builds only (zero cost in Release builds):
 
 ```csharp
-// Access performance statistics
-var avgTime = ProcessorSupportedQueryExecutor<BlogPost, IProcessor<BlogPost>>.AverageProcessingTimeMs;
-var totalQueries = ProcessorSupportedQueryExecutor<BlogPost, IProcessor<BlogPost>>.TotalExecutions;
+// Access performance statistics (DEBUG builds only)
+using XperienceCommunity.DataContext.Diagnostics;
+
+var metrics = QueryExecutorPerformanceTracker.GetMetrics(
+    "XperienceCommunity.DataContext.Executors.ContentQueryExecutor`1");
+
+Console.WriteLine($"Total Executions: {metrics.TotalExecutions}");
+Console.WriteLine($"Average Time: {metrics.AverageExecutionTimeMs:F2}ms");
+
+// Get all tracked executor types
+var trackedTypes = QueryExecutorPerformanceTracker.GetTrackedExecutorTypes();
 
 // Detailed timing for specific operations
 var results = await context.ExecuteWithDiagnostics(
