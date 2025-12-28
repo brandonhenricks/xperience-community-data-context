@@ -27,14 +27,14 @@ internal sealed class NullCoalescingExpressionProcessor : IExpressionProcessor<B
 
         // For null coalescing (x ?? y), we need to handle cases where x is null
         // This is complex because it involves conditional logic
-        
+
         var leftMemberName = ExtractMemberNameIfPossible(node.Left);
         var rightValue = ExtractValueIfPossible(node.Right);
 
         if (leftMemberName != null && rightValue != null)
         {
             // Simple case: member ?? constant
-            // This translates to: WHERE (member IS NULL OR member = constant) 
+            // This translates to: WHERE (member IS NULL OR member = constant)
             // But since Kentico might not have OR logic easily accessible in single WhereAction,
             // we'll use a simplified approach
             _context.AddParameter(leftMemberName, rightValue);

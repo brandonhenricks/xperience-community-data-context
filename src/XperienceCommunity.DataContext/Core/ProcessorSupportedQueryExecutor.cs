@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Abstractions.Processors;
@@ -47,14 +47,14 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
         using var activity = ActivitySource.StartActivity("ExecuteQuery");
         activity?.SetTag("contentType", typeof(T).Name);
         activity?.SetTag("processorCount", _processors?.Count ?? 0);
-        
+
         var stopwatch = Stopwatch.StartNew();
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var results = await ExecuteQueryInternalAsync(queryBuilder, queryOptions, cancellationToken).ConfigureAwait(false);
-            
+
             activity?.SetTag("executionTimeMs", stopwatch.ElapsedMilliseconds);
             activity?.SetTag("resultCount", results?.Count() ?? 0);
 
@@ -65,7 +65,7 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
 
             using var processingActivity = ActivitySource.StartActivity("ProcessResults");
             processingActivity?.SetTag("processorCount", _processors.Count);
-            
+
             var processedCount = 0;
             foreach (var result in results ?? Array.Empty<T>())
             {
@@ -76,7 +76,7 @@ public abstract class ProcessorSupportedQueryExecutor<T, TProcessor> : BaseConte
                 }
                 processedCount++;
             }
-            
+
             processingActivity?.SetTag("itemsProcessed", processedCount);
             return results ?? Array.Empty<T>();
         }

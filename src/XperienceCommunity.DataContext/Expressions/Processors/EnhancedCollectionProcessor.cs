@@ -33,20 +33,23 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
             case nameof(Enumerable.Contains):
                 ProcessContains(node);
                 break;
+
             case nameof(Enumerable.Any):
                 ProcessAny(node);
                 break;
+
             case nameof(Enumerable.All):
                 ProcessAll(node);
                 break;
+
             default:
                 throw new UnsupportedExpressionException($"Collection method '{node.Method.Name}' is not supported", node);
         }
     }
 
     private static bool IsCollectionMethod(string methodName)
-        => methodName is nameof(Enumerable.Contains) or 
-                        nameof(Enumerable.Any) or 
+        => methodName is nameof(Enumerable.Contains) or
+                        nameof(Enumerable.Any) or
                         nameof(Enumerable.All);
 
     private static bool IsEnumerableMethod(MethodCallExpression node)
@@ -64,7 +67,7 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
     private static bool IsGenericCollectionType(Type type)
     {
         if (!type.IsGenericType) return false;
-        
+
         var genericDef = type.GetGenericTypeDefinition();
         return genericDef == typeof(List<>) ||
                genericDef == typeof(HashSet<>) ||
@@ -131,7 +134,7 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
         {
             // Simple Any() without predicate on collection
             var collectionExpr = node.Arguments[0];
-            
+
             // This typically appears in expressions like "x.SomeCollectionProperty.Any()"
             // We need to check if the collection property has any elements
             if (collectionExpr is MemberExpression memberExpr)
@@ -186,9 +189,11 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
                 case ConstantExpression constExpr:
                     value = constExpr.Value;
                     break;
+
                 case MemberExpression rightMember:
                     value = Expression.Lambda(rightMember).Compile().DynamicInvoke();
                     break;
+
                 default:
                     throw new NotSupportedException("Only constant or member expressions are supported on the right side of the predicate in Any(predicate)");
             }
@@ -258,7 +263,7 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
                 // Try to use Kentico's native WhereIn based on collection type
                 if (TryUseNativeWhereIn(w, paramName, values, isNegated))
                     return;
-                
+
                 // Fallback to chained OR/AND conditions
                 UseFallbackChaining(w, paramName, values, isNegated);
             }
@@ -273,7 +278,7 @@ internal sealed class EnhancedCollectionProcessor : IExpressionProcessor<MethodC
     private static bool TryUseNativeWhereIn(WhereParameters w, string paramName, object[] values, bool isNegated)
     {
         if (values.Length == 0) return false;
-        
+
         var firstValue = values[0];
 
         if (firstValue == null) return false;

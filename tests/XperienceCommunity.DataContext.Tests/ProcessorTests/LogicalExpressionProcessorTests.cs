@@ -4,7 +4,6 @@ using NSubstitute;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Expressions.Processors;
-using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
 
@@ -203,7 +202,7 @@ public class LogicalExpressionProcessorTests
 
     [Theory]
     [InlineData(true, false)] // true && false => process false constant
-    [InlineData(false, true)] // false && true => process false constant  
+    [InlineData(false, true)] // false && true => process false constant
     public void Process_ShouldOptimizeBooleanConstants_InAndExpression(bool leftValue, bool rightValue)
     {
         var context = Substitute.For<IExpressionContext>();

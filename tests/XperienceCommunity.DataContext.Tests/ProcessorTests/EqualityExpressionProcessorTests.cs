@@ -4,7 +4,6 @@ using NSubstitute;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Expressions.Processors;
-using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
 
@@ -19,6 +18,7 @@ public class EqualityExpressionProcessorTests
 
         Assert.NotNull(processor);
     }
+
     [Fact]
     public void Process_MemberEqualsConstant_AddsParameterAndWhereEquals()
     {
@@ -168,5 +168,4 @@ public class EqualityExpressionProcessorTests
 
         Assert.Equal(expected, result);
     }
-
 }

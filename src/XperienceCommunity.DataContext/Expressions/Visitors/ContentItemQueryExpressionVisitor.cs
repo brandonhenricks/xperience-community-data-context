@@ -13,9 +13,10 @@ internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
 
     private readonly Dictionary<ExpressionType, IExpressionProcessor<BinaryExpression>> _binaryExpressionProcessors;
     private readonly Dictionary<Type, IExpressionProcessor> _expressionProcessors;
-    
+
     // Enhanced processors for specialized operations
     private readonly EnhancedCollectionProcessor _collectionProcessor;
+
     private readonly EnhancedStringProcessor _stringProcessor;
     private readonly NegatedExpressionProcessor _negatedProcessor;
     private readonly RangeOptimizationProcessor _rangeProcessor;
@@ -83,7 +84,7 @@ internal sealed class ContentItemQueryExpressionVisitor : ExpressionVisitor
     protected override Expression VisitMethodCall(MethodCallExpression node)
     {
         // Try enhanced processors first for better optimization
-        
+
         // Enhanced collection processing
         if (_collectionProcessor.CanProcess(node))
         {

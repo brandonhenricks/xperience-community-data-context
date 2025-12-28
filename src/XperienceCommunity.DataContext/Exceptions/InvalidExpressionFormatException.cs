@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XperienceCommunity.DataContext.Exceptions
+﻿namespace XperienceCommunity.DataContext.Exceptions
 {
-    public sealed class InvalidExpressionFormatException: ExpressionProcessingException
+    public sealed class InvalidExpressionFormatException : ExpressionProcessingException
     {
         public InvalidExpressionFormatException() : base()
         {

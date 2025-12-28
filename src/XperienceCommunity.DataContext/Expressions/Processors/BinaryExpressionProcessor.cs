@@ -1,12 +1,12 @@
-﻿using System.Linq.Expressions;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.ComponentModel;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Abstractions.Processors;
-using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Diagnostics;
+using XperienceCommunity.DataContext.Exceptions;
 
 namespace XperienceCommunity.DataContext.Expressions.Processors;
 
@@ -51,7 +51,7 @@ internal sealed class BinaryExpressionProcessor : IExpressionProcessor<BinaryExp
 
         // Log diagnostic information
         DataContextDiagnostics.LogDiagnostic(
-            "ExpressionProcessing", 
+            "ExpressionProcessing",
             $"Processing binary expression: {node.NodeType}",
             LogLevel.Debug);
 

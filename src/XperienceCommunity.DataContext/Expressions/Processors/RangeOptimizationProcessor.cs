@@ -2,7 +2,6 @@
 using CMS.ContentEngine;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Abstractions.Processors;
-using XperienceCommunity.DataContext.Exceptions;
 
 namespace XperienceCommunity.DataContext.Expressions.Processors;
 
@@ -18,7 +17,7 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(visitFunction);
-        
+
         _context = context;
         _visitFunction = visitFunction;
     }
@@ -64,9 +63,9 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
     private static bool IsComparisonExpression(Expression expr)
     {
         return expr is BinaryExpression binary &&
-               binary.NodeType is ExpressionType.GreaterThan or 
-                                  ExpressionType.GreaterThanOrEqual or 
-                                  ExpressionType.LessThan or 
+               binary.NodeType is ExpressionType.GreaterThan or
+                                  ExpressionType.GreaterThanOrEqual or
+                                  ExpressionType.LessThan or
                                   ExpressionType.LessThanOrEqual;
     }
 
@@ -114,7 +113,7 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
     }
 
     private static (object min, object max, bool isMinInclusive, bool isMaxInclusive) DetermineRange(
-        BinaryExpression leftComp, BinaryExpression rightComp, 
+        BinaryExpression leftComp, BinaryExpression rightComp,
         object leftValue, object rightValue, string memberName)
     {
         // Determine the order based on comparison operators
@@ -124,15 +123,15 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
         if (leftIsLower && !rightIsLower)
         {
             // Left is lower bound, right is upper bound
-            return (leftValue, rightValue, 
-                    IsInclusiveComparison(leftComp), 
+            return (leftValue, rightValue,
+                    IsInclusiveComparison(leftComp),
                     IsInclusiveComparison(rightComp));
         }
         else if (!leftIsLower && rightIsLower)
         {
             // Right is lower bound, left is upper bound
-            return (rightValue, leftValue, 
-                    IsInclusiveComparison(rightComp), 
+            return (rightValue, leftValue,
+                    IsInclusiveComparison(rightComp),
                     IsInclusiveComparison(leftComp));
         }
         else
@@ -141,14 +140,14 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
             var comparer = Comparer<object>.Default;
             if (comparer.Compare(leftValue, rightValue) <= 0)
             {
-                return (leftValue, rightValue, 
-                        IsInclusiveComparison(leftComp), 
+                return (leftValue, rightValue,
+                        IsInclusiveComparison(leftComp),
                         IsInclusiveComparison(rightComp));
             }
             else
             {
-                return (rightValue, leftValue, 
-                        IsInclusiveComparison(rightComp), 
+                return (rightValue, leftValue,
+                        IsInclusiveComparison(rightComp),
                         IsInclusiveComparison(leftComp));
             }
         }
@@ -165,7 +164,7 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
         {
             return binary.NodeType is ExpressionType.LessThan or ExpressionType.LessThanOrEqual;
         }
-        
+
         return false;
     }
 
@@ -199,7 +198,7 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
                 // Try to use WhereBetween if available in Kentico
                 if (TryUseBetween(w, rangeInfo))
                     return;
-                
+
                 // Fallback to separate comparisons
                 UseSeparateComparisons(w, rangeInfo);
             }
@@ -248,9 +247,9 @@ internal sealed class RangeOptimizationProcessor : IExpressionProcessor<BinaryEx
     }
 
     private sealed record RangeInfo(
-        string MemberName, 
-        object MinValue, 
-        object MaxValue, 
-        bool IsMinInclusive, 
+        string MemberName,
+        object MinValue,
+        object MaxValue,
+        bool IsMinInclusive,
         bool IsMaxInclusive);
 }

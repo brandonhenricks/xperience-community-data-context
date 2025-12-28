@@ -1,5 +1,4 @@
-using Xunit;
-using XperienceCommunity.DataContext.Diagnostics;
+﻿using XperienceCommunity.DataContext.Diagnostics;
 
 namespace XperienceCommunity.DataContext.Tests;
 
@@ -19,7 +18,7 @@ public class QueryExecutorPerformanceTrackerTests
 
         // Assert
         var metrics = QueryExecutorPerformanceTracker.GetMetrics(executorTypeName);
-        
+
 #if DEBUG
         // In DEBUG builds, metrics should be tracked
         Assert.Equal(3, metrics.TotalExecutions);
@@ -120,7 +119,7 @@ public class QueryExecutorPerformanceTrackerTests
         // Simulate recording via the QueryExecutorPerformanceTracker
         var executorTypeName = "TestExecutor3";
         QueryExecutorPerformanceTracker.Clear(executorTypeName);
-        
+
         // Act
         QueryExecutorPerformanceTracker.RecordExecution(executorTypeName, 50);
         QueryExecutorPerformanceTracker.RecordExecution(executorTypeName, 150);

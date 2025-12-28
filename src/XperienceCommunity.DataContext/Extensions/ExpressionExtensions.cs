@@ -21,7 +21,6 @@ internal static class ExpressionExtensions
         var value = GetExpressionValue(collectionExpression.Expression);
 
         return ExtractValues(value);
-
     }
 
     /// <summary>
@@ -57,6 +56,7 @@ internal static class ExpressionExtensions
                     _ => throw new NotSupportedException(
                         $"The member type '{member.GetType().Name}' is not supported.")
                 };
+
             default:
                 throw new NotSupportedException(
                     $"The expression type '{expression.GetType().Name}' is not supported.");
@@ -178,13 +178,13 @@ internal static class ExpressionExtensions
     {
         var members = new List<string>();
         Expression? current = memberExpression;
-        
+
         while (current is MemberExpression m)
         {
             members.Insert(0, m.Member.Name);
             current = m.Expression;
         }
-        
+
         return members;
     }
 

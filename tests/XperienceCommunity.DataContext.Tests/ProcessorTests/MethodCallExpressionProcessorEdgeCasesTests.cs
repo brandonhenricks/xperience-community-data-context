@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
+﻿using System.Linq.Expressions;
 using NSubstitute;
 using XperienceCommunity.DataContext.Abstractions;
 using XperienceCommunity.DataContext.Expressions.Processors;
-using Xunit;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests
 {
     public class MethodCallExpressionProcessorEdgeCasesTests
     {
-        private class Dummy { public int Value { get; set; } }
-
+        private class Dummy
+        { public int Value { get; set; } }
 
         [Fact]
         public void ProcessStringContains_ShouldThrow_OnInvalidFormat()

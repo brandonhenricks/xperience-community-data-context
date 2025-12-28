@@ -1,6 +1,5 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using CMS.ContentEngine;
-using Xunit;
 using XperienceCommunity.DataContext.Core;
 
 namespace XperienceCommunity.DataContext.Tests;
@@ -57,10 +56,10 @@ public class CacheKeyGeneratorTests
         var identifier = "123";
         var language = "en-US";
         var queryBuilder = new ContentItemQueryBuilder();
-        
+
         var parameters1 = new ConcurrentDictionary<string, object?>();
         parameters1.TryAdd("param1", "value1");
-        
+
         var parameters2 = new ConcurrentDictionary<string, object?>();
         parameters2.TryAdd("param1", "value2");
 
@@ -80,12 +79,12 @@ public class CacheKeyGeneratorTests
         var identifier = "123";
         var language = "en-US";
         var queryBuilder = new ContentItemQueryBuilder();
-        
+
         var parameters1 = new ConcurrentDictionary<string, object?>();
         parameters1.TryAdd("a", 1);
         parameters1.TryAdd("b", 2);
         parameters1.TryAdd("c", 3);
-        
+
         var parameters2 = new ConcurrentDictionary<string, object?>();
         parameters2.TryAdd("c", 3);
         parameters2.TryAdd("a", 1);
@@ -198,10 +197,10 @@ public class CacheKeyGeneratorTests
         var identifier = "123";
         var language = "en-US";
         var queryBuilder = new ContentItemQueryBuilder();
-        
+
         var parameters1 = new ConcurrentDictionary<string, object?>();
         parameters1.TryAdd("param1", null);
-        
+
         var parameters2 = new ConcurrentDictionary<string, object?>();
         parameters2.TryAdd("param1", null);
 
@@ -221,10 +220,10 @@ public class CacheKeyGeneratorTests
         var identifier = "123";
         var language = "en-US";
         var queryBuilder = new ContentItemQueryBuilder();
-        
+
         var parameters1 = new ConcurrentDictionary<string, object?>();
         parameters1.TryAdd("value", "42"); // String "42"
-        
+
         var parameters2 = new ConcurrentDictionary<string, object?>();
         parameters2.TryAdd("value", 42); // Integer 42
 
@@ -244,7 +243,7 @@ public class CacheKeyGeneratorTests
         var identifier = "123";
         var language = "en-US";
         var queryBuilder = new ContentItemQueryBuilder();
-        
+
         // Create two objects that will have the same hash code but different values
         // Using strings with carefully chosen values that hash to the same value is complex,
         // so we'll use a simpler approach: verify that structurally different objects
@@ -252,7 +251,7 @@ public class CacheKeyGeneratorTests
         var parameters1 = new ConcurrentDictionary<string, object?>();
         parameters1.TryAdd("key1", "value1");
         parameters1.TryAdd("key2", "value2");
-        
+
         var parameters2 = new ConcurrentDictionary<string, object?>();
         parameters2.TryAdd("key1", "value1");
         parameters2.TryAdd("key2", "value3"); // Different value

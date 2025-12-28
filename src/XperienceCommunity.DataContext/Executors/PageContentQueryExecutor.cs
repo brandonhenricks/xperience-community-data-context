@@ -11,7 +11,7 @@ namespace XperienceCommunity.DataContext.Executors;
 /// Executor for page content queries.
 /// </summary>
 /// <typeparam name="T">The type of page content.</typeparam>
-public class PageContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IPageContentProcessor<T>> 
+public class PageContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IPageContentProcessor<T>>
     where T : class, IWebPageFieldsSource, new()
 {
     /// <summary>
@@ -21,7 +21,7 @@ public class PageContentQueryExecutor<T> : ProcessorSupportedQueryExecutor<T, IP
     /// <param name="queryExecutor">The query executor.</param>
     /// <param name="processors">The processors.</param>
     public PageContentQueryExecutor(ILogger<PageContentQueryExecutor<T>> logger,
-        IContentQueryExecutor queryExecutor, IEnumerable<IPageContentProcessor<T>>? processors) 
+        IContentQueryExecutor queryExecutor, IEnumerable<IPageContentProcessor<T>>? processors)
         : base(logger, queryExecutor, processors)
     {
         ArgumentNullException.ThrowIfNull(queryExecutor);

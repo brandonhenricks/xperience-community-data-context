@@ -8,14 +8,13 @@ namespace XperienceCommunity.DataContext.Abstractions.Processors;
 /// </summary>
 public interface IProcessor
 {
-
 }
 
 /// <summary>
 /// Represents a processor for a specific type of content.
 /// </summary>
 /// <typeparam name="T">The type of content to process.</typeparam>
-public interface IProcessor<in T>: IProcessor where T : class, new()
+public interface IProcessor<in T> : IProcessor where T : class, new()
 {
     /// <summary>
     /// Processes the specified content asynchronously.
@@ -37,7 +36,6 @@ public interface IProcessor<in T>: IProcessor where T : class, new()
 /// <typeparam name="T">The type of content item to process.</typeparam>
 public interface IContentItemProcessor<in T> : IProcessor<T> where T : class, IContentItemFieldsSource, new()
 {
-
 }
 
 /// <summary>
@@ -46,5 +44,4 @@ public interface IContentItemProcessor<in T> : IProcessor<T> where T : class, IC
 /// <typeparam name="T">The type of page content to process.</typeparam>
 public interface IPageContentProcessor<in T> : IProcessor<T> where T : class, IWebPageFieldsSource, new()
 {
-
 }

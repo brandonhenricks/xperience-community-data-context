@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using XperienceCommunity.DataContext.Abstractions.Processors;
+using XperienceCommunity.DataContext.Contexts;
 using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Expressions.Visitors;
-using XperienceCommunity.DataContext.Expressions.Processors;
-using Xunit;
-using XperienceCommunity.DataContext.Contexts;
 
 namespace XperienceCommunity.DataContext.Tests;
 
 public class ContentItemQueryExpressionVisitorTests
 {
-
     [Fact]
     public void Constructor_ThrowsArgumentNullException_WhenContextIsNull()
     {

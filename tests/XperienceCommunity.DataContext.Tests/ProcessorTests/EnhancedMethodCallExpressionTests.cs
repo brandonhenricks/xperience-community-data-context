@@ -1,9 +1,7 @@
-﻿using System;
-using System.Linq.Expressions;
-using Xunit;
+﻿using System.Linq.Expressions;
 using XperienceCommunity.DataContext.Contexts;
-using XperienceCommunity.DataContext.Expressions.Visitors;
 using XperienceCommunity.DataContext.Expressions.Processors;
+using XperienceCommunity.DataContext.Expressions.Visitors;
 
 namespace XperienceCommunity.DataContext.Tests.ProcessorTests;
 
@@ -35,7 +33,7 @@ public class EnhancedMethodCallExpressionTests
         // Arrange
         var context = new ExpressionContext();
         var processor = new MethodCallExpressionProcessor(context);
-        
+
         var list = Expression.Constant(new[] { 1, 2, 3 });
         var anyMethod = typeof(Enumerable).GetMethods()
             .First(m => m.Name == "Any" && m.GetParameters().Length == 1);
@@ -45,7 +43,7 @@ public class EnhancedMethodCallExpressionTests
         // Act & Assert
         Assert.True(processor.CanProcess(call));
         processor.Process(call);
-        
+
         // Verify context was updated
         Assert.NotEmpty(context.WhereActions);
     }

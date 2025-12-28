@@ -26,6 +26,7 @@ public class ContentQueryExecutorTests
 
         Assert.NotNull(executor);
     }
+
     [Fact]
     public async Task ExecuteQueryInternalAsync_ShouldReturnMappedResult()
     {
