@@ -64,24 +64,4 @@ public class QueryExecutionException : Exception
     {
         ContentTypeName = contentTypeName;
     }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="QueryExecutionException"/> class.
-    /// </summary>
-    /// <param name="message">The error message.</param>
-    /// <param name="contentTypeName">The content type name that was being queried.</param>
-    /// <param name="innerException">The inner exception.</param>
-    /// <param name="memberName">The calling member name.</param>
-    /// <param name="filePath">The calling file path.</param>
-    /// <param name="lineNumber">The calling line number.</param>
-    public QueryExecutionException(string message, string? contentTypeName, Exception innerException,
-        [CallerMemberName] string? memberName = null,
-        [CallerFilePath] string? filePath = null,
-        [CallerLineNumber] int lineNumber = 0) : base(message, innerException)
-    {
-        ContentTypeName = contentTypeName;
-        SourceMemberName = memberName;
-        SourceFilePath = filePath;
-        SourceLineNumber = lineNumber == 0 ? null : lineNumber;
-    }
 }

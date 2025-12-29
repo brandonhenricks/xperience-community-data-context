@@ -1,7 +1,6 @@
 ﻿using CMS.ContentEngine;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using XperienceCommunity.DataContext.Exceptions;
 using XperienceCommunity.DataContext.Executors;
 
@@ -9,18 +8,19 @@ namespace XperienceCommunity.DataContext.Tests.Executors
 {
     public class ReusableSchemaExecutorTests
     {
-        // Test subclass that allows us to inject behavior
+        // Testable subclass that exposes protected members for testing
+        // without duplicating the exception handling logic
         private class TestableReusableSchemaExecutor<T> : ReusableSchemaExecutor<T>
         {
-            private readonly Func<Task<IEnumerable<T>?>>? _executeFunc;
+            private readonly Func<Task<IEnumerable<T>?>>? _getResultOverride;
 
             public TestableReusableSchemaExecutor(
                 ILogger<ReusableSchemaExecutor<T>> logger,
                 IContentQueryExecutor queryExecutor,
-                Func<Task<IEnumerable<T>?>>? executeFunc = null)
+                Func<Task<IEnumerable<T>?>>? getResultOverride = null)
                 : base(logger, queryExecutor)
             {
-                _executeFunc = executeFunc;
+                _getResultOverride = getResultOverride;
             }
 
             public override async Task<IEnumerable<T>> ExecuteQueryAsync(
@@ -28,34 +28,23 @@ namespace XperienceCommunity.DataContext.Tests.Executors
                 ContentQueryExecutionOptions queryOptions,
                 CancellationToken cancellationToken)
             {
-                if (_executeFunc != null)
+                if (_getResultOverride != null)
                 {
+                    // Override the GetMappedResult call to inject test behavior
                     try
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        var results = await _executeFunc();
+                        var results = await _getResultOverride();
                         return results ?? Array.Empty<T>();
                     }
                     catch (OperationCanceledException)
                     {
                         throw;
                     }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError(ex, "Query execution failed for {ContentType}", typeof(T).Name);
-                        throw new QueryExecutionException($"Failed to execute query for {typeof(T).Name}", typeof(T).Name, ex);
-                    }
                 }
 
                 return await base.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken);
             }
-
-            // Expose logger for testing
-            public ILogger<ReusableSchemaExecutor<T>> Logger => 
-                (ILogger<ReusableSchemaExecutor<T>>)GetType()
-                    .BaseType!
-                    .GetField("_logger", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
-                    .GetValue(this)!;
         }
 
         [Fact]
@@ -99,39 +88,36 @@ namespace XperienceCommunity.DataContext.Tests.Executors
         public async Task ExecuteQueryAsync_ShouldWrapOtherExceptionsInQueryExecutionException()
         {
             // Arrange
-            var logger = Substitute.For<ILogger<ReusableSchemaExecutor<object>>>();
+            var logger = Substitute.For<ILogger<ReusableSchemaExecutor<TestContent>>>();
             var queryExecutor = Substitute.For<IContentQueryExecutor>();
             var innerException = new InvalidOperationException("Database connection failed");
-            var executor = new TestableReusableSchemaExecutor<object>(
-                logger, 
-                queryExecutor,
-                () => throw innerException);
+            
+            // Use the base executor directly - let it call GetMappedResult which will throw
+            var executor = new ReusableSchemaExecutor<TestContent>(logger, queryExecutor);
             
             var queryBuilder = new ContentItemQueryBuilder();
             var queryOptions = new ContentQueryExecutionOptions();
             var cancellationToken = CancellationToken.None;
 
             // Act & Assert
+            // The actual implementation will call GetMappedResult which will fail
+            // because queryExecutor doesn't have automapper configured
             var exception = await Assert.ThrowsAsync<QueryExecutionException>(async () =>
                 await executor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken));
 
             Assert.NotNull(exception);
-            Assert.Equal("Failed to execute query for Object", exception.Message);
-            Assert.Same(innerException, exception.InnerException);
-            Assert.Equal("Object", exception.ContentTypeName);
+            Assert.Contains("Failed to execute query for TestContent", exception.Message);
+            Assert.NotNull(exception.InnerException);
+            Assert.Equal("TestContent", exception.ContentTypeName);
         }
 
         [Fact]
         public async Task ExecuteQueryAsync_ShouldLogErrorBeforeThrowingQueryExecutionException()
         {
             // Arrange
-            var logger = Substitute.For<ILogger<ReusableSchemaExecutor<object>>>();
+            var logger = Substitute.For<ILogger<ReusableSchemaExecutor<TestContent>>>();
             var queryExecutor = Substitute.For<IContentQueryExecutor>();
-            var innerException = new InvalidOperationException("Database connection failed");
-            var executor = new TestableReusableSchemaExecutor<object>(
-                logger, 
-                queryExecutor,
-                () => throw innerException);
+            var executor = new ReusableSchemaExecutor<TestContent>(logger, queryExecutor);
             
             var queryBuilder = new ContentItemQueryBuilder();
             var queryOptions = new ContentQueryExecutionOptions();
@@ -147,12 +133,12 @@ namespace XperienceCommunity.DataContext.Tests.Executors
                 // Expected
             }
 
-            // Assert - Verify logging occurred
+            // Assert - Verify logging occurred with the expected message pattern
             logger.Received(1).Log(
                 LogLevel.Error,
                 Arg.Any<EventId>(),
-                Arg.Is<object>(o => o.ToString()!.Contains("Query execution failed for Object")),
-                innerException,
+                Arg.Is<object>(o => o.ToString()!.Contains("Query execution failed for TestContent")),
+                Arg.Any<Exception>(),
                 Arg.Any<Func<object, Exception?, string>>());
         }
 
@@ -160,12 +146,12 @@ namespace XperienceCommunity.DataContext.Tests.Executors
         public async Task ExecuteQueryAsync_ShouldReturnEmptyArrayWhenNoResults()
         {
             // Arrange
-            var logger = Substitute.For<ILogger<ReusableSchemaExecutor<object>>>();
+            var logger = Substitute.For<ILogger<ReusableSchemaExecutor<TestContent>>>();
             var queryExecutor = Substitute.For<IContentQueryExecutor>();
-            var executor = new TestableReusableSchemaExecutor<object>(
+            var executor = new TestableReusableSchemaExecutor<TestContent>(
                 logger, 
                 queryExecutor,
-                () => Task.FromResult<IEnumerable<object>?>(null));
+                () => Task.FromResult<IEnumerable<TestContent>?>(null));
             
             var queryBuilder = new ContentItemQueryBuilder();
             var queryOptions = new ContentQueryExecutionOptions();
@@ -185,7 +171,7 @@ namespace XperienceCommunity.DataContext.Tests.Executors
             // Arrange
             var logger = Substitute.For<ILogger<ReusableSchemaExecutor<object>>>();
             var queryExecutor = Substitute.For<IContentQueryExecutor>();
-            var executor = new TestableReusableSchemaExecutor<object>(logger, queryExecutor);
+            var executor = new ReusableSchemaExecutor<object>(logger, queryExecutor);
             
             var queryBuilder = new ContentItemQueryBuilder();
             var queryOptions = new ContentQueryExecutionOptions();
@@ -194,6 +180,13 @@ namespace XperienceCommunity.DataContext.Tests.Executors
             // Act & Assert
             await Assert.ThrowsAsync<OperationCanceledException>(async () =>
                 await executor.ExecuteQueryAsync(queryBuilder, queryOptions, cancellationToken));
+        }
+
+        // Test content type for testing
+        public class TestContent
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
         }
     }
 }
